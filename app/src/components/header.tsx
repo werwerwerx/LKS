@@ -39,7 +39,7 @@ export default function Header({ className, ...props }: React.HTMLAttributes<HTM
 
           {/* Navigation - Desktop */}
           <nav className="hidden lg:flex items-center space-x-8">
-            <NavLink href="#models">Модели</NavLink>
+            <NavLink href="/models">Каталог</NavLink>
             <NavLink href="#services">Услуги</NavLink>
             <NavLink href="#about">О нас</NavLink>
             <NavLink href="#contacts">Контакты</NavLink>

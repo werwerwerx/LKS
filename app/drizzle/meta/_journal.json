@@ -22,6 +22,13 @@
       "when": 1751033161789,
       "tag": "0002_lazy_hairball",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1751041254862,
+      "tag": "0003_luxuriant_hulk",
+      "breakpoints": true
     }
   ]
 }

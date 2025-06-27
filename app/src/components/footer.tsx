@@ -29,15 +29,6 @@ export default function Footer() {
               </Button>
             </div>
 
-            <div className="text-red-400 space-y-1 text-sm lg:text-base leading-relaxed">
-              <p>Модельное агентство Touch-Models не</p>
-              <p>предоставляет услуги интимного</p>
-              <p>характера. Все услуги</p>
-              <p>сопровождения осуществляются с</p>
-              <p>обоюдного согласия сторон.</p>
-              <p>Ограничение возраста для</p>
-              <p>использования сайта - 18 лет.</p>
-            </div>
           </div>
 
           <div className="flex justify-center">

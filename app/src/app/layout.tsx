@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
+import { QueryProvider } from "@/components/query-provider";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +26,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geist.variable} ${geistMono.variable} bg-background text-foreground antialiase dark`}>
-        {children}
+        <QueryProvider>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );

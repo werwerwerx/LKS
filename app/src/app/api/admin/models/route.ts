@@ -11,6 +11,7 @@ export const GET = async () => {
         name: models.name,
         age: models.age,
         description: models.description,
+        price: models.price,
         is_active: models.is_active,
         created_at: models.created_at,
         updated_at: models.updated_at,
@@ -28,6 +29,7 @@ export const GET = async () => {
           name: model.name,
           age: model.age,
           description: model.description,
+          price: model.price,
           is_active: model.is_active,
           created_at: model.created_at,
           updated_at: model.updated_at,
@@ -55,7 +57,7 @@ export const GET = async () => {
 export const POST = async (req: NextRequest) => {
   try {
     const body = await req.json()
-    const { name, age, description, photos = [] } = body
+    const { name, age, description, price, photos = [] } = body
 
     if (!name || !age) {
       return NextResponse.json(
@@ -71,10 +73,18 @@ export const POST = async (req: NextRequest) => {
       )
     }
 
+    if (price && (typeof price !== 'number' || price < 0)) {
+      return NextResponse.json(
+        { error: "Цена должна быть положительным числом" },
+        { status: 400 }
+      )
+    }
+
     const [newModel] = await db.insert(models).values({
       name: name.trim(),
       age,
       description: description?.trim() || null,
+      price: price || null,
       is_active: true
     }).returning()
 

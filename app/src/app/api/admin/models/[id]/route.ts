@@ -52,7 +52,7 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
     }
 
     const body = await req.json()
-    const { name, age, description, photos = [], is_active } = body
+    const { name, age, description, price, photos = [], is_active } = body
 
     if (!name || !age) {
       return NextResponse.json(
@@ -64,6 +64,13 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
     if (typeof age !== 'number' || age < 16 || age > 99) {
       return NextResponse.json(
         { error: "Возраст должен быть числом от 16 до 99" },
+        { status: 400 }
+      )
+    }
+
+    if (price && (typeof price !== 'number' || price < 0)) {
+      return NextResponse.json(
+        { error: "Цена должна быть положительным числом" },
         { status: 400 }
       )
     }
@@ -81,6 +88,7 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
       name: name.trim(),
       age,
       description: description?.trim() || null,
+      price: price || null,
       is_active: is_active ?? true,
       updated_at: new Date()
     }).where(eq(models.id, modelId))

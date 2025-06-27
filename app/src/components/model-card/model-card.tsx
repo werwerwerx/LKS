@@ -89,7 +89,7 @@ export function ModelCard({
         <div className="flex justify-between items-end">
           <div className="text-white">
             <h3 className="text-3xl font-bold mb-1 drop-shadow-lg">{name}</h3>
-            <p className="text-lg text-white/90 font-medium">{age} лет</p>
+            <p className="text-lg text-white/90 font-medium">Возраст:{age}</p>
           </div>
           <div className="ml-4">{goToModelButton || defaultButton}</div>
         </div>

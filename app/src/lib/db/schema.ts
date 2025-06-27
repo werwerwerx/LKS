@@ -1,10 +1,11 @@
-import { pgTable, text, serial, timestamp, integer, boolean } from 'drizzle-orm/pg-core'
+import { pgTable, text, serial, timestamp, integer, boolean, decimal } from 'drizzle-orm/pg-core'
 
 export const models = pgTable('models', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
   age: integer('age').notNull(),
   description: text('description'),
+  price: decimal('price', { precision: 10, scale: 2 }),
   is_active: boolean('is_active').default(true),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),

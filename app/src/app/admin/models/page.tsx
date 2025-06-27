@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,12 +13,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, AlertCircle, Plus, Edit, Trash2, Users } from "lucide-react"
 import ImageUpload from "@/components/image-upload"
+import { useModels, useCreateModel, useUpdateModel, useDeleteModels } from "@/hooks/use-models"
 
 interface Model {
   id: number
   name: string
   age: number
   description?: string
+  price?: string
   is_active: boolean
   created_at: string
   updated_at: string
@@ -33,35 +36,33 @@ interface ModelFormData {
   name: string
   age: number | string
   description: string
+  price: number | string
   photos: string[]
   is_active: boolean
 }
 
 export default function ModelsAdminPage() {
-  const [models, setModels] = useState<Model[]>([])
   const [selectedModels, setSelectedModels] = useState<number[]>([])
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editingModel, setEditingModel] = useState<Model | null>(null)
   const [message, setMessage] = useState<Message | null>(null)
-  const [loading, setLoading] = useState({
-    fetch: false,
-    create: false,
-    edit: false,
-    delete: false
-  })
+  
+  const { data: modelsData, isLoading: isLoadingModels, error: modelsError } = useModels()
+  const createModelMutation = useCreateModel()
+  const updateModelMutation = useUpdateModel()
+  const deleteModelsMutation = useDeleteModels()
+  
+  const models = modelsData?.models || []
   
   const [formData, setFormData] = useState<ModelFormData>({
     name: '',
     age: '',
     description: '',
+    price: '',
     photos: [],
     is_active: true
   })
-
-  const setLoadingState = (key: keyof typeof loading, value: boolean) => {
-    setLoading(prev => ({ ...prev, [key]: value }))
-  }
 
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text })
@@ -72,24 +73,17 @@ export default function ModelsAdminPage() {
       name: '',
       age: '',
       description: '',
+      price: '',
       photos: [],
       is_active: true
     })
   }
 
-  const fetchModels = async () => {
-    setLoadingState('fetch', true)
-    try {
-      const response = await fetch('/api/admin/models')
-      if (!response.ok) throw new Error('Ошибка загрузки')
-      const data = await response.json()
-      setModels(data.models || [])
-    } catch (error) {
+  useEffect(() => {
+    if (modelsError) {
       showMessage('error', 'Ошибка загрузки моделей')
-    } finally {
-      setLoadingState('fetch', false)
     }
-  }
+  }, [modelsError])
 
   const createModel = async () => {
     if (!formData.name.trim() || !formData.age) {
@@ -97,30 +91,21 @@ export default function ModelsAdminPage() {
       return
     }
 
-    setLoadingState('create', true)
     try {
-      const response = await fetch('/api/admin/models', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          age: Number(formData.age)
-        })
+      await createModelMutation.mutateAsync({
+        name: formData.name.trim(),
+        age: Number(formData.age),
+        description: formData.description.trim() || undefined,
+        price: formData.price ? Number(formData.price) : undefined,
+        photos: formData.photos,
+        is_active: formData.is_active
       })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Ошибка создания')
-      }
 
       showMessage('success', 'Модель успешно создана')
       setShowCreateDialog(false)
       resetForm()
-      fetchModels()
     } catch (error) {
       showMessage('error', error instanceof Error ? error.message : 'Ошибка создания модели')
-    } finally {
-      setLoadingState('create', false)
     }
   }
 
@@ -130,57 +115,35 @@ export default function ModelsAdminPage() {
       return
     }
 
-    setLoadingState('edit', true)
     try {
-      const response = await fetch(`/api/admin/models/${editingModel.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          age: Number(formData.age)
-        })
+      await updateModelMutation.mutateAsync({
+        id: editingModel.id,
+        name: formData.name.trim(),
+        age: Number(formData.age),
+        description: formData.description.trim() || undefined,
+        price: formData.price ? Number(formData.price) : undefined,
+        photos: formData.photos,
+        is_active: formData.is_active
       })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Ошибка обновления')
-      }
 
       showMessage('success', 'Модель успешно обновлена')
       setShowEditDialog(false)
       setEditingModel(null)
       resetForm()
-      fetchModels()
     } catch (error) {
       showMessage('error', error instanceof Error ? error.message : 'Ошибка обновления модели')
-    } finally {
-      setLoadingState('edit', false)
     }
   }
 
   const deleteModels = async (ids: number[]) => {
     if (ids.length === 0) return
 
-    setLoadingState('delete', true)
     try {
-      const response = await fetch('/api/admin/models', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids })
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Ошибка удаления')
-      }
-
+      await deleteModelsMutation.mutateAsync(ids)
       showMessage('success', `Удалено моделей: ${ids.length}`)
       setSelectedModels([])
-      fetchModels()
     } catch (error) {
       showMessage('error', error instanceof Error ? error.message : 'Ошибка удаления моделей')
-    } finally {
-      setLoadingState('delete', false)
     }
   }
 
@@ -206,20 +169,18 @@ export default function ModelsAdminPage() {
       name: model.name,
       age: model.age,
       description: model.description || '',
+      price: model.price || '',
       photos: model.photos,
       is_active: model.is_active
     })
     setShowEditDialog(true)
   }
 
-  const handleImageUpload = (files: File[]) => {
-    const urls = files.map(file => URL.createObjectURL(file))
-    setFormData(prev => ({ ...prev, photos: urls }))
+  const handlePhotosChange = (photos: string[]) => {
+    setFormData(prev => ({ ...prev, photos }))
   }
 
-  useEffect(() => {
-    fetchModels()
-  }, [])
+
 
   useEffect(() => {
     if (message) {
@@ -228,7 +189,7 @@ export default function ModelsAdminPage() {
     }
   }, [message])
 
-  const isAnyLoading = Object.values(loading).some(Boolean)
+  const isAnyLoading = isLoadingModels || createModelMutation.isPending || updateModelMutation.isPending || deleteModelsMutation.isPending
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -267,8 +228,8 @@ export default function ModelsAdminPage() {
                 setShowCreateDialog(false)
                 resetForm()
               }}
-              loading={loading.create}
-              onImageUpload={handleImageUpload}
+              loading={createModelMutation.isPending}
+              onPhotosChange={handlePhotosChange}
             />
           </DialogContent>
         </Dialog>
@@ -277,7 +238,7 @@ export default function ModelsAdminPage() {
           <Button 
             variant="destructive" 
             onClick={() => deleteModels(selectedModels)}
-            disabled={loading.delete}
+            disabled={deleteModelsMutation.isPending}
             className="flex-1 sm:flex-initial"
           >
             <Trash2 className="h-4 w-4 mr-2" />
@@ -305,7 +266,7 @@ export default function ModelsAdminPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading.fetch ? (
+          {isLoadingModels ? (
             <div className="text-center py-8">Загрузка моделей...</div>
           ) : models.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -321,7 +282,7 @@ export default function ModelsAdminPage() {
                   onSelect={(checked) => handleSelectModel(model.id, checked)}
                   onEdit={() => openEditDialog(model)}
                   onDelete={() => deleteModels([model.id])}
-                  loading={loading.delete}
+                  loading={deleteModelsMutation.isPending}
                 />
               ))}
             </div>
@@ -346,8 +307,8 @@ export default function ModelsAdminPage() {
               setEditingModel(null)
               resetForm()
             }}
-            loading={loading.edit}
-            onImageUpload={handleImageUpload}
+            loading={updateModelMutation.isPending}
+            onPhotosChange={handlePhotosChange}
             isEdit={true}
           />
         </DialogContent>
@@ -362,11 +323,11 @@ interface ModelFormProps {
   onSubmit: () => void
   onCancel: () => void
   loading: boolean
-  onImageUpload: (files: File[]) => void
+  onPhotosChange: (photos: string[]) => void
   isEdit?: boolean
 }
 
-function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onImageUpload, isEdit = false }: ModelFormProps) {
+function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onPhotosChange, isEdit = false }: ModelFormProps) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4">
@@ -391,6 +352,20 @@ function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onImage
             value={formData.age}
             onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
             placeholder="Введите возраст"
+            disabled={loading}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="price">Цена за час (руб.)</Label>
+          <Input
+            id="price"
+            type="number"
+            min="0"
+            step="100"
+            value={formData.price}
+            onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+            placeholder="Введите цену за час"
             disabled={loading}
           />
         </div>
@@ -421,7 +396,8 @@ function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onImage
       <div>
         <Label>Фотографии</Label>
         <ImageUpload 
-          onFilesChange={onImageUpload}
+          onPhotosChange={onPhotosChange}
+          existingPhotos={formData.photos}
           maxFiles={10}
           maxSize={5}
         />
@@ -461,7 +437,9 @@ function ModelCard({ model, isSelected, onSelect, onEdit, onDelete, loading }: M
           <div>
             <h3 className="font-medium">{model.name}</h3>
             <p className="text-sm text-muted-foreground">
-              {model.age} лет • Создано: {new Date(model.created_at).toLocaleDateString('ru-RU')}
+              Возраст: {model.age}
+              {model.price && ` • ${model.price} руб/час`}
+              • Создано: {new Date(model.created_at).toLocaleDateString('ru-RU')}
             </p>
           </div>
         </div>
@@ -469,6 +447,11 @@ function ModelCard({ model, isSelected, onSelect, onEdit, onDelete, loading }: M
           <Badge variant={model.is_active ? "default" : "secondary"}>
             {model.is_active ? "Активна" : "Неактивна"}
           </Badge>
+          <Link href={`/models/${model.id}`} target="_blank">
+            <Button size="sm" variant="outline">
+              <Users className="h-4 w-4" />
+            </Button>
+          </Link>
           <Button size="sm" variant="outline" onClick={onEdit}>
             <Edit className="h-4 w-4" />
           </Button>
