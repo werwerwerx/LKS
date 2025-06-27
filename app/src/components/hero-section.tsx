@@ -43,7 +43,7 @@ export default function HeroSection({ className, ...props }: React.HTMLAttribute
           </div>
 
           {/* Изображение */}
-          <div className="w-full absolute">
+          <div className="w-full lg:w-1/2 relative aspect-[3/4]">
             <Image
               src="/imgs/hot-background.jpg"
               alt="Professional Model"
