@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { ChevronDown, Phone, Send } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { resoureces } from "@/lib/resources"
 
 export default function Header({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
@@ -13,11 +14,11 @@ export default function Header({ className, ...props }: React.HTMLAttributes<HTM
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <div className="w-12 h-12 bg-foreground rounded-full flex items-center justify-center">
-              <span className="text-background font-bold text-lg">TM</span>
+              <span className="text-background font-bold text-lg">{resoureces.companyName.slice(0, 2)}</span>
             </div>
             <div className="text-foreground">
-              <div className="font-serif text-lg">Touch</div>
-              <div className="font-serif text-sm">Models</div>
+              <div className="font-serif text-lg">{resoureces.companyName}</div>
+              <div className="font-serif text-sm">{resoureces.companyName}</div>
             </div>
           </div>
 

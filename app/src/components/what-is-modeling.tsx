@@ -1,6 +1,38 @@
 "use client"
 
 import Image from "next/image"
+import { ModelCard } from "@/components/model-card/model-card"
+
+const modelsData = [
+  {
+    name: "Олеся",
+    age: 23,
+    imgSrc: [
+      "/imgs/OLESYA1.webp",
+      "/imgs/OLESYA2.jpg", 
+      "/imgs/OLESYA3.jpg"
+    ]
+  },
+  {
+    name: "Вероника", 
+    age: 25,
+    imgSrc: [
+      "/imgs/veronika.webp",
+      "/imgs/veronika2.webp",
+      "/imgs/VERONIKA3.jpg",
+      "/imgs/VERONIKA4.webp"
+    ]
+  },
+  {
+    name: "Катя",
+    age: 22, 
+    imgSrc: [
+      "/imgs/KATYA1.webp",
+      "/imgs/KATYA2.webp",
+      "/imgs/KATYA3.jpg"
+    ]
+  }
+]
 
 export default function WhatIsModeling() {
   return (
@@ -20,19 +52,16 @@ export default function WhatIsModeling() {
 
         <h3 className="text-2xl md:text-4xl font-bold text-center mb-12">ВЫБЕРИ СВОЮ МОДЕЛЬ</h3>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="aspect-[3/4] bg-muted rounded-lg overflow-hidden">
-              <Image
-                src={`/placeholder.svg?height=400&width=300`}
-                alt={`Professional Model ${i}`}
-                width={300}
-                height={400}
-                className="w-full h-full object-cover"
+          <div className="grid md:grid-cols-3 gap-6">
+            {modelsData.map((model, index) => (
+              <ModelCard
+                key={index}
+                imgSrc={model.imgSrc}
+                name={model.name}
+                age={model.age}
               />
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
       </div>
     </section>
   )

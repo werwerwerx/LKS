@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <main>
       <Header />
-      <HeroSection className="mt-10"/>
+      <HeroSection className="mt-40 md:mt-80 lg:mt-0"/>
       <HowToOrder />
       <WhatIsModeling />
       <PerfectChoice />
