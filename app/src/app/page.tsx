@@ -1,5 +1,5 @@
 import Header from "@/components/header"
-import HeroSection from "@/components/hero-section"
+import HeroSectionContainer from "@/components/hero-section"
 import HowToOrder from "@/components/how-to-order"
 import WhatIsModeling from "@/components/what-is-modeling"
 import PerfectChoice from "@/components/perfect-choice"
@@ -14,15 +14,33 @@ export default function Home() {
   return (
     <main>
       <Header />
-      <HeroSection className="mt-40 md:mt-80 lg:mt-0"/>
-      <HowToOrder />
-      <WhatIsModeling />
-      <PerfectChoice />
-      <OurServices />
-      <Advantages />
-      <EliteChoice />
-      <ServicesDescription />
-      <ContactForm />
+      <div className="bg-background">
+        <HeroSectionContainer />
+      </div>
+      <div className="bg-muted/20">
+        <WhatIsModeling />
+      </div>
+      <div className="bg-background">
+        <HowToOrder />
+      </div>
+      <div className="bg-muted/20">
+        <PerfectChoice />
+      </div>
+      <div className="bg-background">
+        <OurServices />
+      </div>
+      <div className="bg-muted/20">
+        <Advantages />
+      </div>
+      <div className="bg-background">
+        <EliteChoice />
+      </div>
+      <div className="bg-muted/20">
+        <ServicesDescription />
+      </div>
+      <div className="bg-background">
+        <ContactForm />
+      </div>
       <Footer />
     </main>
   )

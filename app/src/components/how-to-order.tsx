@@ -1,5 +1,7 @@
 "use client"
 
+import { ClipboardList } from "lucide-react"
+
 export default function HowToOrder() {
   const steps = [
     {
@@ -31,19 +33,51 @@ export default function HowToOrder() {
   ]
 
   return (
-    <section className="bg-background text-foreground py-20">
+    <section className="py-20 lg:py-24">
       <div className="container mx-auto px-6 max-w-7xl">
-        <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 max-w-4xl mx-auto leading-tight">
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <div className="bg-primary rounded-lg p-3 lg:p-4">
+            <ClipboardList className="w-6 h-6 lg:w-8 lg:h-8 text-primary-foreground" />
+          </div>
+        </div>
+
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-16 lg:mb-20 max-w-4xl mx-auto leading-tight">
           КАК ЗАКАЗАТЬ МОДЕЛЬ ДЛЯ СЪЕМКИ?
         </h2>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
           {steps.map((step, index) => (
-            <div key={index} className="flex items-start space-x-4">
-              <div className="text-6xl font-bold text-yellow-600 opacity-50 flex-shrink-0">{step.number}</div>
-              <div>
-                <h3 className="text-lg font-bold mb-3 text-yellow-600">{step.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+            <div 
+              key={index} 
+              className={`
+                border rounded-md p-6 lg:p-7 transition-all duration-300 hover:shadow-md
+                ${index === 2 
+                  ? 'bg-primary text-primary-foreground border-primary-foreground' 
+                  : 'bg-card hover:bg-card/80'
+                }
+              `}
+            >
+              <div className="flex items-start space-x-5">
+                <div className={`
+                  text-5xl lg:text-6xl font-bold flex-shrink-0
+                  ${index === 2 ? 'text-primary-foreground/70' : 'text-primary opacity-50'}
+                `}>
+                  {step.number}
+                </div>
+                <div className="pt-1">
+                  <h3 className={`
+                    text-base lg:text-lg font-bold mb-3 leading-tight
+                    ${index === 2 ? 'text-primary-foreground' : 'text-primary'}
+                  `}>
+                    {step.title}
+                  </h3>
+                  <p className={`
+                    leading-relaxed text-sm lg:text-base
+                    ${index === 2 ? 'text-primary-foreground/90' : 'text-muted-foreground'}
+                  `}>
+                    {step.description}
+                  </p>
+                </div>
               </div>
             </div>
           ))}

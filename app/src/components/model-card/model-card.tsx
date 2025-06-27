@@ -38,9 +38,9 @@ export function ModelCard({
     <Button
       variant="default"
       size="lg"
-      className="rounded-full px-6 py-3 text-sm font-medium bg-white/90 text-black hover:bg-white transition-all duration-300 backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-105"
+      className="rounded-full px-5 py-2 text-sm font-medium bg-white/90 text-black hover:bg-white transition-colors duration-300 backdrop-blur-sm shadow-lg"
     >
-      Перейти к модели
+      Увидеть больше
       <ArrowRight className="w-4 h-4 ml-2" />
     </Button>
   )
@@ -74,7 +74,7 @@ export function ModelCard({
                 src={src}
                 alt={`${name} - фото ${index + 1}`}
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
                 priority={index === 0}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
