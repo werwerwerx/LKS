@@ -20,7 +20,7 @@ export default function Header({ className, ...props }: React.HTMLAttributes<HTM
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-primary-foreground font-bold text-lg lg:text-xl">
                   {resoureces.companyName}
                 </span>
@@ -32,7 +32,7 @@ export default function Header({ className, ...props }: React.HTMLAttributes<HTM
                 {resoureces.companyName}
               </div>
               <div className="text-xs lg:text-sm text-muted-foreground font-medium">
-                Elite Models Agency
+                Элитное модельное агентство
               </div>
             </div>
           </div>

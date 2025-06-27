@@ -3,6 +3,7 @@
 import { Phone, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { resoureces } from "@/lib/resources"
 
 export default function Footer() {
   return (
@@ -73,8 +74,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 lg:mt-16 pt-6 lg:pt-8 border-t border-border text-sm text-muted-foreground">
-          <p className="mb-2">ООО Тач Моделс ИНН 205414867О КПП 658202759 ОГРН 725666120З132</p>
-          <p className="mb-4">Офис в Москве: Пресненская наб., 8 стр 1, Москва, Россия</p>
+          <p className="mb-2">{resoureces.companyInn}</p>
+          <p className="mb-4">{resoureces.fullAdress}</p>
           <div className="flex space-x-4">
             <Link href="#privacy" className="underline hover:text-foreground transition-colors">
               Пользовательское соглашение
