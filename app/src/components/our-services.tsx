@@ -36,15 +36,7 @@ export default function OurServices() {
 
   return (
     <section className="py-20 lg:py-24 relative overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute top-1/2 -translate-y-1/2 right-8 lg:right-1/5 w-[392px] h-[588px] opacity-10 lg:opacity-25 pointer-events-none">
-        <Image 
-          src="/imgs/goddamn-girl.png" 
-          alt="Our Services" 
-          fill
-          className="object-cover object-center"
-        />
-      </div>
+
 
       <div className="container mx-auto px-6 max-w-7xl relative z-10">
         <div className="flex items-center justify-center gap-4 mb-6">
@@ -65,9 +57,9 @@ export default function OurServices() {
             {services.map((service, index) => (
               <div key={index} className="border rounded-md bg-card p-5 lg:p-6 transition-all duration-300 hover:shadow-md hover:bg-card/80">
                 <div className="flex items-start space-x-4">
-                  <div className="w-3 h-3 bg-primary rounded-full mt-2 flex-shrink-0" />
+                  <div className="w-3 h-3 bg-primary-foreground rounded-full mt-2 flex-shrink-0" />
                   <div>
-                    <h3 className="text-primary font-semibold text-base lg:text-lg mb-2 leading-tight">
+                    <h3 className="text-primary-foreground font-semibold text-base lg:text-lg mb-2 leading-tight">
                       {service.title}
                     </h3>
                     <p className="text-muted-foreground text-base lg:text-lg leading-relaxed">

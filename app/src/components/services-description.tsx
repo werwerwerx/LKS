@@ -1,12 +1,13 @@
 "use client"
 
 import { FileText } from "lucide-react"
+import { CircularShadow } from "@/components/ui/circular-shadow"
 
 export default function ServicesDescription() {
   return (
     <section className="py-20 lg:py-24 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent" />
-      <div className="container mx-auto px-6 relative z-10">
+      <CircularShadow position="left" size="md" />
+      <div className="container mx-auto px-6 relative" style={{ zIndex: 2 }}>
         <div className="flex items-center justify-end gap-4 mb-6">
           <div className="bg-primary rounded-lg p-3 lg:p-4">
             <FileText className="w-6 h-6 lg:w-8 lg:h-8 text-primary-foreground" />

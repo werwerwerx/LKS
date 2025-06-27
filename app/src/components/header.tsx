@@ -14,7 +14,7 @@ export default function Header({ className, ...props }: React.HTMLAttributes<HTM
       "shadow-sm",
       className
     )} {...props}>
-      <div className="container mx-auto px-4 lg:px-6">
+      <div className="container h-20 mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16 lg:h-20">
           
           {/* Logo */}
@@ -22,7 +22,7 @@ export default function Header({ className, ...props }: React.HTMLAttributes<HTM
             <div className="relative">
               <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-primary-foreground font-bold text-lg lg:text-xl">
-                  {resoureces.companyName.slice(0, 2)}
+                  {resoureces.companyName}
                 </span>
               </div>
                               <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-background"></div>

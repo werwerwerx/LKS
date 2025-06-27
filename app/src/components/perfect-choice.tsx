@@ -1,15 +1,14 @@
 "use client"
 
 import { Award } from "lucide-react"
-import Image from "next/image"
-import { RadialShadow } from "@/components/ui/radial-shadow"
+import { CircularShadow } from "@/components/ui/circular-shadow"
 
 export default function PerfectChoice() {
   return (
     <section className="py-20 lg:py-24 relative overflow-hidden">
-      <RadialShadow position="right" size={1000} opacity={0.08} />
+      <CircularShadow position="left" size="md" />
       
-      <div className="container mx-auto px-6 max-w-7xl relative z-10">
+              <div className="container mx-auto px-6 max-w-7xl relative" style={{ zIndex: 2 }}>
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
           <div className="w-full lg:w-2/3 order-2 lg:order-1">
             <div className="max-w-4xl text-center lg:text-left">

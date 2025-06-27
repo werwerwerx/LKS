@@ -53,7 +53,7 @@ export default function HowToOrder() {
                 border rounded-md p-6 lg:p-7 transition-all duration-300 hover:shadow-md
                 ${index === 2 
                   ? 'bg-primary text-primary-foreground border-primary-foreground' 
-                  : 'bg-card hover:bg-card/80'
+                  : 'bg-card hover:bg-card/80 text-primary-foreground'
                 }
               `}
             >

@@ -5,12 +5,15 @@ import Image from "next/image"
 import { Crown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { resoureces } from "@/lib/resources"
+import { CircularShadow } from "@/components/ui/circular-shadow"
 
 export default function HeroSection({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <HeroSectionContainer>
-      {/* Текстовый контент */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start">
+          <HeroSectionContainer>
+        <CircularShadow position="left" size="sm" />
+
+        {/* Текстовый контент */}
+        <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start relative" style={{ zIndex: 2 }}>
         <div className="flex items-center gap-4 mb-6">
           <div className="bg-primary rounded-lg p-3 lg:p-4">
             <Crown className="w-6 h-6 lg:w-8 lg:h-8 text-primary-foreground" />
@@ -50,7 +53,7 @@ export default function HeroSection({ className, ...props }: React.HTMLAttribute
 
 function HeroSectionBgImage() {
   return (
-    <div className="w-full lg:w-2/3 relative aspect-[4/3] lg:aspect-[3/4] max-h-[600px]">
+    <div className="w-full lg:w-2/3 relative aspect-[4/3] lg:aspect-[3/4] max-h-[600px]" style={{ zIndex: 2 }}>
       <Image
         src="/imgs/hot-background.png"
         alt="Professional Model"
@@ -72,7 +75,7 @@ function HeroSectionContainer({ children, className, ...props }: React.HTMLAttri
       )}
       {...props}
     >
-      <div className="flex w-full flex-col lg:flex-row items-start gap-12 lg:gap-16 container px-6 mx-auto">
+      <div className="flex w-full flex-col lg:flex-row items-start gap-12 lg:gap-16 container px-6 mx-auto relative">
         {children}
       </div>
     </section>
