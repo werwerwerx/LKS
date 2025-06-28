@@ -1,6 +1,4 @@
 import { Phone, Send } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import type { SiteSettings } from "@/lib/get-site-settings"
 
 interface FooterProps {
@@ -8,61 +6,40 @@ interface FooterProps {
 }
 
 export default function Footer({ settings }: FooterProps) {
-
   return (
-    <footer className="py-16 lg:py-20 border-t border-border">
-      <div className="container mx-auto px-6">
-        <div className="grid md:grid-cols-3 gap-10 lg:gap-12 items-start">
-          <div className="space-y-5">
-            <div className="flex items-center space-x-4">
-              <span className="text-xl lg:text-2xl font-medium">{settings.phone}</span>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="rounded-full border border-border text-foreground hover:bg-muted w-10 h-10 lg:w-12 lg:h-12"
-                asChild
-              >
-                <a href={`tel:${settings.phone}`}>
-                  <Phone className="w-4 h-4 lg:w-5 lg:h-5" />
-                </a>
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="rounded-full border border-border text-foreground hover:bg-muted w-10 h-10 lg:w-12 lg:h-12"
-                asChild
-              >
-                <a href={`https://t.me/${settings.telegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
-                  <Send className="w-4 h-4 lg:w-5 lg:h-5" />
-                </a>
-              </Button>
-            </div>
+    <footer className="py-8 lg:py-12 border-t border-border bg-muted/20">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+          
+          {/* Контакты */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <a 
+              href={`tel:${settings.phone}`}
+              className="flex items-center gap-2 text-foreground hover:text-primary transition-colors"
+            >
+              <Phone className="w-4 h-4" />
+              <span className="text-sm sm:text-base font-medium">{settings.phone}</span>
+            </a>
+            
+            <a 
+              href={`https://t.me/${settings.telegram.replace('@', '')}`}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-foreground hover:text-primary transition-colors"
+            >
+              <Send className="w-4 h-4" />
+              <span className="text-sm sm:text-base font-medium">{settings.telegram}</span>
+            </a>
           </div>
-
-          <div className="flex justify-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-16 h-16 lg:w-20 lg:h-20 bg-foreground rounded-full flex items-center justify-center">
-                <span className="text-background font-bold text-xl lg:text-2xl">ЛКС</span>
-              </div>
-              <div className="text-foreground">
-                <div className="font-serif text-2xl lg:text-3xl">Л.К.С</div>
-                <div className="font-serif text-lg lg:text-xl">Models</div>
-              </div>
-            </div>
+          
+          {/* Копирайт */}
+          <div className="text-center lg:text-right">
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              © {new Date().getFullYear()} L.K.S. Все права защищены
+            </p>
           </div>
-
-          <div className="flex justify-end">
-            <nav className="grid grid-cols-2 gap-4 text-sm lg:text-base">
-              <Link href="/" className="text-foreground hover:text-muted-foreground transition-colors">
-                Главная
-              </Link>
-              <Link href="/catalog" className="text-foreground hover:text-muted-foreground transition-colors">
-                Каталог
-              </Link>
-            </nav>
-          </div>
+          
         </div>
-
       </div>
     </footer>
   )

@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api-client'
 
 interface Model {
   id: number
@@ -33,10 +34,7 @@ export function useModels() {
   return useQuery({
     queryKey: MODELS_QUERY_KEY,
     queryFn: async (): Promise<{ models: Model[] }> => {
-      const response = await fetch('/api/admin/models')
-      if (!response.ok) {
-        throw new Error('Ошибка загрузки моделей')
-      }
+      const response = await apiGet('/api/admin/models')
       return response.json()
     },
   })
@@ -47,17 +45,7 @@ export function useCreateModel() {
 
   return useMutation({
     mutationFn: async (data: CreateModelData) => {
-      const response = await fetch('/api/admin/models', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Ошибка создания модели')
-      }
-
+      const response = await apiPost('/api/admin/models', data)
       return response.json()
     },
     onSuccess: () => {
@@ -71,17 +59,7 @@ export function useUpdateModel() {
 
   return useMutation({
     mutationFn: async (data: UpdateModelData) => {
-      const response = await fetch(`/api/admin/models/${data.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Ошибка обновления модели')
-      }
-
+      const response = await apiPut(`/api/admin/models/${data.id}`, data)
       return response.json()
     },
     onSuccess: () => {
@@ -95,19 +73,7 @@ export function useDeleteModels() {
 
   return useMutation({
     mutationFn: async (ids: number[]) => {
-      const response = await fetch('/api/admin/models', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ids }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Ошибка удаления моделей')
-      }
-
+      const response = await apiDelete('/api/admin/models', { ids })
       return response.json()
     },
     onMutate: async (ids) => {
@@ -140,19 +106,7 @@ export function useAddModelPhotos() {
 
   return useMutation({
     mutationFn: async ({ modelId, photoUrls }: { modelId: number; photoUrls: string[] }) => {
-      const response = await fetch(`/api/admin/models/${modelId}/photos`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ photoUrls }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Ошибка добавления фотографий')
-      }
-
+      const response = await apiPost(`/api/admin/models/${modelId}/photos`, { photoUrls })
       return response.json()
     },
     onSuccess: () => {
@@ -166,15 +120,7 @@ export function useDeleteModelPhoto() {
 
   return useMutation({
     mutationFn: async ({ modelId, photoUrl }: { modelId: number; photoUrl: string }) => {
-      const response = await fetch(`/api/admin/models/${modelId}/photos?url=${encodeURIComponent(photoUrl)}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Ошибка удаления фотографии')
-      }
-
+      const response = await apiDelete(`/api/admin/models/${modelId}/photos?url=${encodeURIComponent(photoUrl)}`)
       return response.json()
     },
     onSuccess: () => {

@@ -12,6 +12,23 @@ import Footer from "@/components/footer"
 import Image from "next/image"
 import { getSiteSettings } from "@/lib/get-site-settings"
 
+export const revalidate = 3600 // Ревалидация каждый час
+
+export async function generateMetadata() {
+  const settings = await getSiteSettings()
+  
+  return {
+    title: settings.home_title,
+    description: settings.hero_description,
+    keywords: "модельное агентство, премиум модели, профессиональные модели, L.K.S.",
+    openGraph: {
+      title: settings.home_title,
+      description: settings.hero_description,
+      type: "website",
+    },
+  }
+}
+
 export default async function Home() {
   const settings = await getSiteSettings()
   return (

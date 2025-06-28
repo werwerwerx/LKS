@@ -5,13 +5,13 @@ import { Users, MessageSquare, Plus, ArrowRight } from "lucide-react"
 
 export default function AdminDashboard() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-2">Добро пожаловать в админ-панель</h2>
-        <p className="text-muted-foreground">Управляйте моделями и настройками системы</p>
+        <h2 className="text-xl sm:text-2xl font-bold mb-2">Добро пожаловать в админ-панель</h2>
+        <p className="text-sm sm:text-base text-muted-foreground">Управляйте моделями и настройками системы</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -24,23 +24,25 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 • Добавление новых моделей с фотографиями<br/>
                 • Редактирование информации о моделях<br/>
                 • Массовое удаление моделей<br/>
                 • Управление статусом активности
               </p>
-              <div className="flex gap-2">
-                <Link href="/admin/models">
-                  <Button>
-                    Управлять моделями
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Link href="/admin/models" className="flex-1">
+                  <Button className="w-full sm:w-auto">
+                    <span className="sm:hidden">Управлять</span>
+                    <span className="hidden sm:inline">Управлять моделями</span>
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </Link>
-                <Link href="/admin/models">
-                  <Button variant="outline">
+                <Link href="/admin/models" className="flex-1">
+                  <Button variant="outline" className="w-full sm:w-auto">
                     <Plus className="h-4 w-4 mr-2" />
-                    Создать модель
+                    <span className="sm:hidden">Создать</span>
+                    <span className="hidden sm:inline">Создать модель</span>
                   </Button>
                 </Link>
               </div>
@@ -60,7 +62,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 • Настройка бота для уведомлений<br/>
                 • Управление получателем уведомлений<br/>
                 • Мониторинг статуса системы<br/>

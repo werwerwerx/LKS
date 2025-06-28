@@ -4,39 +4,10 @@ import Image from "next/image"
 import { lazy, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Camera } from "lucide-react"
+import { useModels } from "@/hooks/use-models"
+import Link from "next/link"
 
 const ModelCard = lazy(() => import("@/components/model-card/model-card").then(module => ({ default: module.ModelCard })))
-
-const modelsData = [
-  {
-    name: "Олеся",
-    age: 23,
-    imgSrc: [
-      "/imgs/OLESYA1.webp",
-      "/imgs/OLESYA2.jpg", 
-      "/imgs/OLESYA3.jpg"
-    ]
-  },
-  {
-    name: "Вероника", 
-    age: 25,
-    imgSrc: [
-      "/imgs/veronika.webp",
-      "/imgs/veronika2.webp",
-      "/imgs/VERONIKA3.jpg",
-      "/imgs/VERONIKA4.webp"
-    ]
-  },
-  {
-    name: "Катя",
-    age: 22, 
-    imgSrc: [
-      "/imgs/KATYA1.webp",
-      "/imgs/KATYA2.webp",
-      "/imgs/KATYA3.jpg"
-    ]
-  }
-]
 
 function ModelCardSkeleton() {
   return (
@@ -47,6 +18,12 @@ function ModelCardSkeleton() {
 }
 
 export default function WhatIsModeling() {
+  const { data: modelsData, isLoading } = useModels()
+  
+  const activeModels = modelsData?.models
+    ?.filter(model => model.is_active && model.photos.length > 0)
+    ?.slice(0, 3) || []
+
   return (
     <section className="py-20 lg:py-24">
       <div className="container mx-auto px-6 max-w-7xl">
@@ -75,25 +52,40 @@ export default function WhatIsModeling() {
         </h3>
 
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mb-16 lg:mb-20">
-          {modelsData.map((model, index) => (
-            <Suspense key={index} fallback={<ModelCardSkeleton />}>
-              <ModelCard
-                imgSrc={model.imgSrc}
-                name={model.name}
-                age={model.age}
-              />
-            </Suspense>
-          ))}
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <ModelCardSkeleton key={index} />
+            ))
+          ) : activeModels.length > 0 ? (
+            activeModels.map((model) => (
+              <Suspense key={model.id} fallback={<ModelCardSkeleton />}>
+                <ModelCard
+                  imgSrc={model.photos}
+                  name={model.name}
+                  age={model.age}
+                />
+              </Suspense>
+            ))
+          ) : (
+            <div className="col-span-3 text-center py-12">
+              <p className="text-lg text-muted-foreground">
+                Модели временно недоступны. Скоро здесь появятся новые анкеты!
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="text-center">
           <Button
+            asChild
             size="lg"
             variant="default"
             className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 lg:px-12 lg:py-5 text-base lg:text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            Смотреть весь каталог моделей
-            <ArrowRight className="w-5 h-5 ml-2" />
+            <Link href="/models">
+              Смотреть весь каталог моделей
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
           </Button>
           <p className="mt-4 text-sm lg:text-base text-muted-foreground font-medium">
             В нашем каталоге только самые профессиональные модели

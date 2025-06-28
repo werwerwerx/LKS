@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 import { toast } from "sonner"
 import type { SiteSettings } from "@/lib/get-site-settings"
+import { apiGet, apiPut, apiPost } from "@/lib/api-client"
 
 export default function SiteSettingsPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null)
@@ -22,13 +23,9 @@ export default function SiteSettingsPage() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch("/api/admin/site-settings")
-      if (response.ok) {
-        const data = await response.json()
-        setSettings(data.settings)
-      } else {
-        toast.error("Ошибка загрузки настроек")
-      }
+      const response = await apiGet("/api/admin/site-settings")
+      const data = await response.json()
+      setSettings(data.settings)
     } catch (error) {
       console.error("Error fetching settings:", error)
       toast.error("Ошибка загрузки настроек")
@@ -42,21 +39,10 @@ export default function SiteSettingsPage() {
 
     setSaving(true)
     try {
-      const response = await fetch("/api/admin/site-settings", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(settings),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setSettings(data.settings)
-        toast.success("Настройки успешно сохранены")
-      } else {
-        toast.error("Ошибка сохранения настроек")
-      }
+      const response = await apiPut("/api/admin/site-settings", settings)
+      const data = await response.json()
+      setSettings(data.settings)
+      toast.success("Настройки успешно сохранены")
     } catch (error) {
       console.error("Error saving settings:", error)
       toast.error("Ошибка сохранения настроек")
@@ -68,17 +54,10 @@ export default function SiteSettingsPage() {
   const handleReset = async () => {
     setResetting(true)
     try {
-      const response = await fetch("/api/admin/site-settings", {
-        method: "POST",
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setSettings(data.settings)
-        toast.success("Настройки сброшены к значениям по умолчанию")
-      } else {
-        toast.error("Ошибка сброса настроек")
-      }
+      const response = await apiPost("/api/admin/site-settings")
+      const data = await response.json()
+      setSettings(data.settings)
+      toast.success("Настройки сброшены к значениям по умолчанию")
     } catch (error) {
       console.error("Error resetting settings:", error)
       toast.error("Ошибка сброса настроек")
@@ -109,18 +88,19 @@ export default function SiteSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Настройки сайта</h1>
-        <div className="flex gap-2">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Настройки сайта</h1>
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button
             variant="outline"
             onClick={handleReset}
             disabled={resetting}
+            className="w-full sm:w-auto"
           >
             {resetting ? "Сброс..." : "Сбросить"}
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
             {saving ? "Сохранение..." : "Сохранить"}
           </Button>
         </div>
@@ -132,7 +112,7 @@ export default function SiteSettingsPage() {
             <CardTitle>Контактная информация</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="phone">Телефон</Label>
                 <Input
@@ -186,9 +166,47 @@ export default function SiteSettingsPage() {
                 id="inn"
                 value={settings.inn}
                 onChange={(e) => updateSetting("inn", e.target.value)}
-                placeholder="ООО Л.К.С. ИНН 205414867О КПП 658202759 ОГРН 725666120З132"
+                placeholder="ООО N.N. ИНН 205414867О КПП 658202759 ОГРН 725666120З132"
                 rows={2}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Заголовки страниц (Title)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="home_title">Заголовок главной страницы</Label>
+              <Input
+                id="home_title"
+                value={settings.home_title}
+                onChange={(e) => updateSetting("home_title", e.target.value)}
+                placeholder="L.K.S. - Модельное агентство премиум класса в Москве"
+              />
+            </div>
+            <div>
+              <Label htmlFor="models_title">Заголовок каталога моделей</Label>
+              <Input
+                id="models_title"
+                value={settings.models_title}
+                onChange={(e) => updateSetting("models_title", e.target.value)}
+                placeholder="Каталог моделей L.K.S. - Профессиональные модели Москвы"
+              />
+            </div>
+            <div>
+              <Label htmlFor="model_title_template">Шаблон заголовка страницы модели</Label>
+              <Input
+                id="model_title_template"
+                value={settings.model_title_template}
+                onChange={(e) => updateSetting("model_title_template", e.target.value)}
+                placeholder="{name}, {age} лет - Профессиональная модель L.K.S."
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Используйте {"{name}"} и {"{age}"} для подстановки имени и возраста модели
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -204,7 +222,7 @@ export default function SiteSettingsPage() {
                 id="hero_description"
                 value={settings.hero_description}
                 onChange={(e) => updateSetting("hero_description", e.target.value)}
-                placeholder="Наше эскорт агентство предлагает премиальные услуги..."
+                placeholder="Наше модельное агентство предлагает премиальные услуги профессиональных моделей..."
                 rows={4}
               />
             </div>
@@ -212,15 +230,16 @@ export default function SiteSettingsPage() {
         </Card>
       </div>
 
-      <div className="flex justify-end gap-2 pt-6">
+      <div className="flex flex-col sm:flex-row justify-end gap-2 pt-6">
         <Button
           variant="outline"
           onClick={handleReset}
           disabled={resetting}
+          className="w-full sm:w-auto order-2 sm:order-1"
         >
           {resetting ? "Сброс..." : "Сбросить к умолчанию"}
         </Button>
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto order-1 sm:order-2">
           {saving ? "Сохранение..." : "Сохранить настройки"}
         </Button>
       </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -176,9 +176,9 @@ export default function ModelsAdminPage() {
     setShowEditDialog(true)
   }
 
-  const handlePhotosChange = (photos: string[]) => {
+  const handlePhotosChange = useCallback((photos: string[]) => {
     setFormData(prev => ({ ...prev, photos }))
-  }
+  }, [])
 
 
 
@@ -192,10 +192,10 @@ export default function ModelsAdminPage() {
   const isAnyLoading = isLoadingModels || createModelMutation.isPending || updateModelMutation.isPending || deleteModelsMutation.isPending
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Управление моделями</h1>
-        <p className="text-muted-foreground">Создание, редактирование и удаление моделей</p>
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Управление моделями</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Создание, редактирование и удаление моделей</p>
       </div>
 
       {message && (
@@ -205,15 +205,15 @@ export default function ModelsAdminPage() {
         </Alert>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
-            <Button className="flex-1 sm:flex-initial">
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Создать модель
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
             <DialogHeader>
               <DialogTitle>Создать новую модель</DialogTitle>
               <DialogDescription>
@@ -239,20 +239,21 @@ export default function ModelsAdminPage() {
             variant="destructive" 
             onClick={() => deleteModels(selectedModels)}
             disabled={deleteModelsMutation.isPending}
-            className="flex-1 sm:flex-initial"
+            className="w-full sm:w-auto"
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            Удалить выбранные ({selectedModels.length})
+            <span className="sm:hidden">Удалить ({selectedModels.length})</span>
+            <span className="hidden sm:inline">Удалить выбранные ({selectedModels.length})</span>
           </Button>
         )}
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <span className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Список моделей ({models.length})
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="text-lg sm:text-xl">Список моделей ({models.length})</span>
             </span>
             {models.length > 0 && (
               <div className="flex items-center space-x-2">
@@ -260,7 +261,7 @@ export default function ModelsAdminPage() {
                   checked={selectedModels.length === models.length}
                   onCheckedChange={handleSelectAll}
                 />
-                <Label className="text-sm">Выбрать все</Label>
+                <Label className="text-xs sm:text-sm">Выбрать все</Label>
               </div>
             )}
           </CardTitle>
@@ -290,8 +291,8 @@ export default function ModelsAdminPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
             <DialogTitle>Редактировать модель</DialogTitle>
             <DialogDescription>
@@ -331,29 +332,31 @@ function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onPhoto
   return (
     <div className="space-y-6">
       <div className="grid gap-4">
-        <div>
-          <Label htmlFor="name">Имя модели *</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="Введите имя модели"
-            disabled={loading}
-          />
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="name">Имя модели *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Введите имя модели"
+              disabled={loading}
+            />
+          </div>
 
-        <div>
-          <Label htmlFor="age">Возраст *</Label>
-          <Input
-            id="age"
-            type="number"
-            min="16"
-            max="99"
-            value={formData.age}
-            onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-            placeholder="Введите возраст"
-            disabled={loading}
-          />
+          <div>
+            <Label htmlFor="age">Возраст *</Label>
+            <Input
+              id="age"
+              type="number"
+              min="16"
+              max="99"
+              value={formData.age}
+              onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+              placeholder="Введите возраст"
+              disabled={loading}
+            />
+          </div>
         </div>
 
         <div>
@@ -403,11 +406,11 @@ function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onPhoto
         />
       </div>
 
-      <div className="flex gap-2">
-        <Button onClick={onSubmit} disabled={loading} className="flex-1">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Button onClick={onSubmit} disabled={loading} className="flex-1 order-1">
           {isEdit ? 'Обновить' : 'Создать'}
         </Button>
-        <Button onClick={onCancel} variant="outline" disabled={loading} className="flex-1">
+        <Button onClick={onCancel} variant="outline" disabled={loading} className="flex-1 sm:flex-initial order-2">
           Отмена
         </Button>
       </div>
@@ -426,38 +429,40 @@ interface ModelCardProps {
 
 function ModelCard({ model, isSelected, onSelect, onEdit, onDelete, loading }: ModelCardProps) {
   return (
-    <div className="border rounded-lg p-4 space-y-4">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center space-x-3">
+    <div className="border rounded-lg p-3 sm:p-4 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="flex items-start space-x-3 min-w-0 flex-1">
           <Checkbox
             checked={isSelected}
             onCheckedChange={onSelect}
             disabled={loading}
+            className="mt-1 flex-shrink-0"
           />
-          <div>
-            <h3 className="font-medium">{model.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              Возраст: {model.age}
-              {model.price && ` • ${model.price} руб/час`}
-              • Создано: {new Date(model.created_at).toLocaleDateString('ru-RU')}
-            </p>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-medium text-sm sm:text-base">{model.name}</h3>
+            <div className="text-xs sm:text-sm text-muted-foreground space-y-1">
+              <p>Возраст: {model.age}{model.price && ` • ${model.price} руб/час`}</p>
+              <p className="hidden sm:block">Создано: {new Date(model.created_at).toLocaleDateString('ru-RU')}</p>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={model.is_active ? "default" : "secondary"}>
+        <div className="flex items-center justify-between sm:justify-end gap-2">
+          <Badge variant={model.is_active ? "default" : "secondary"} className="text-xs">
             {model.is_active ? "Активна" : "Неактивна"}
           </Badge>
-          <Link href={`/models/${model.id}`} target="_blank">
-            <Button size="sm" variant="outline">
-              <Users className="h-4 w-4" />
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Link href={`/models/${model.id}`} target="_blank">
+              <Button size="sm" variant="outline">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            </Link>
+            <Button size="sm" variant="outline" onClick={onEdit}>
+              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-          </Link>
-          <Button size="sm" variant="outline" onClick={onEdit}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button size="sm" variant="destructive" onClick={onDelete} disabled={loading}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
+            <Button size="sm" variant="destructive" onClick={onDelete} disabled={loading}>
+              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -466,9 +471,9 @@ function ModelCard({ model, isSelected, onSelect, onEdit, onDelete, loading }: M
       )}
 
       {model.photos.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="flex gap-2 overflow-x-auto pb-2">
           {model.photos.slice(0, 5).map((photo, index) => (
-            <div key={index} className="flex-shrink-0 w-16 h-16 rounded border overflow-hidden">
+            <div key={index} className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded border overflow-hidden">
               <img 
                 src={photo} 
                 alt={`${model.name} фото ${index + 1}`}
@@ -477,7 +482,7 @@ function ModelCard({ model, isSelected, onSelect, onEdit, onDelete, loading }: M
             </div>
           ))}
           {model.photos.length > 5 && (
-            <div className="flex-shrink-0 w-16 h-16 rounded border bg-muted flex items-center justify-center text-xs">
+            <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded border bg-muted flex items-center justify-center text-xs">
               +{model.photos.length - 5}
             </div>
           )}

@@ -11,6 +11,14 @@ export const models = pgTable('models', {
   updated_at: timestamp('updated_at').defaultNow(),
 })
 
+export const admin = pgTable("admin", {
+  id: serial('id').primaryKey(),
+  login: text('login').notNull(),
+  password: text('password').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
+
 export const model_photos = pgTable('model_photos', {
   id: serial('id').primaryKey(),
   model_id: integer('model_id').references(() => models.id),
@@ -49,6 +57,9 @@ export const site_settings = pgTable('site_settings', {
   address: text('address').notNull(),
   inn: text('inn').notNull(),
   hero_description: text('hero_description').notNull(),
+  home_title: text('home_title').notNull(),
+  models_title: text('models_title').notNull(),
+  model_title_template: text('model_title_template').notNull(),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 })

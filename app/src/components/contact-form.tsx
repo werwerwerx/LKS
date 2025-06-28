@@ -8,6 +8,8 @@ import { MessageCircle } from "lucide-react"
 import Image from "next/image"
 import { onSubmitForm } from "@/shared/on-submit-form"
 import type { SiteSettings } from "@/lib/get-site-settings"
+import { ContactFormSchema } from "@/lib/validations"
+import { z } from "zod"
 
 interface ContactFormProps {
   settings: SiteSettings
@@ -17,59 +19,46 @@ export default function ContactForm({ settings }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
-    privacy: false
+    privacy: true
   })
   const [errors, setErrors] = useState({
     name: "",
-    phone: "",
-    privacy: ""
+    phone: ""
   })
 
-  const validateName = (name: string): string => {
-    if (!name.trim()) return "Имя обязательно"
-    if (name.trim().length < 2) return "Имя должно содержать минимум 2 символа"
-    if (name.trim().length > 50) return "Имя не должно превышать 50 символов"
-    if (!/^[a-zA-Zа-яА-ЯёЁ\s]+$/.test(name.trim())) return "Имя должно содержать только буквы"
-    return ""
+  const validateField = (field: keyof typeof formData, value: string | boolean): string => {
+    try {
+      if (field === "name" && typeof value === "string") {
+        ContactFormSchema.shape.name.parse(value)
+      } else if (field === "phone" && typeof value === "string") {
+        ContactFormSchema.shape.phone.parse(value)
+      }
+      return ""
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return error.errors[0].message
+      }
+      return "Ошибка валидации"
+    }
   }
 
-  const validatePhone = (phone: string): string => {
-    if (!phone.trim()) return "Номер телефона обязателен"
-    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '')
-    if (!/^[\+]?[1-9][\d]{9,14}$/.test(cleanPhone)) return "Введите корректный номер телефона"
-    return ""
-  }
-
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: keyof typeof formData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     
-    if (field === "name" && typeof value === "string") {
-      const error = validateName(value)
-      setErrors(prev => ({ ...prev, name: error }))
-    }
-    
-    if (field === "phone" && typeof value === "string") {
-      const error = validatePhone(value)
-      setErrors(prev => ({ ...prev, phone: error }))
-    }
-    
-    if (field === "privacy") {
-      setErrors(prev => ({ ...prev, privacy: value ? "" : "Необходимо согласие на обработку данных" }))
-    }
+    const error = validateField(field, value)
+    setErrors(prev => ({ ...prev, [field]: error }))
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const nameError = validateName(formData.name)
-    const phoneError = validatePhone(formData.phone)
-    const privacyError = !formData.privacy ? "Необходимо согласие на обработку данных" : ""
+    const nameError = validateField("name", formData.name)
+    const phoneError = validateField("phone", formData.phone)
 
     setErrors({
       name: nameError,
-      phone: phoneError,
-      privacy: privacyError
+      phone: phoneError
     })
 
-    if (nameError || phoneError || privacyError) {
+    if (nameError || phoneError) {
       e.preventDefault()
       return
     }
@@ -79,7 +68,7 @@ export default function ContactForm({ settings }: ContactFormProps) {
 
   return (
     <section className="w-full my-20">
-      <div className="flex justify-center w-full container mx-auto">
+      <div className="flex justify-center w-full container mx-auto max-w-7xl px-6">
         <div className="flex justify-end">
           <div className="w-full">
             <div className="flex items-center gap-4 mb-6">
@@ -129,18 +118,10 @@ export default function ContactForm({ settings }: ContactFormProps) {
               </div>
 
               <div className="flex items-start space-x-3 pt-3">
-                <Checkbox 
-                  id="privacy" 
-                  className={`border-muted w-5 h-5 mt-1 ${errors.privacy ? "border-red-500" : ""}`}
-                  checked={formData.privacy}
-                  onCheckedChange={(checked) => handleInputChange("privacy", checked === true)}
-                  required 
-                />
-                <label htmlFor="privacy" className="text-primary text-base cursor-pointer text-start">
-                  Соглашаюсь с политикой обработки данных
+                <label className="text-primary text-base cursor-pointer text-start">
+                  Отправляя заявку, я соглашаюсь с политикой обработки данных
                 </label>
               </div>
-              {errors.privacy && <p className="text-red-500 text-sm">{errors.privacy}</p>}
 
               <Button className="w-full h-12" type="submit">
                 ОТПРАВИТЬ

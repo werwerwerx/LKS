@@ -51,37 +51,50 @@ export function ModelCard({
 
   return (
     <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl group cursor-pointer" {...props}>
-      <Swiper
-        modules={[Pagination, Autoplay]}
-        loop={images.length > 1}
-        spaceBetween={0}
-        slidesPerView={1}
-        speed={800}
-        autoplay={{
-          delay: 5500,
-          disableOnInteraction: false,
-        }}
-        pagination={{
-          clickable: true,
-        }}
-        onSwiper={handleSwiperInit}
-        className="w-full h-full"
-      >
-        {images.map((src, index) => (
-          <SwiperSlide key={index}>
-            <div className="relative w-full h-full">
-              <Image
-                src={src}
-                alt={`${name} - фото ${index + 1}`}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                priority={index === 0}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+      {images.length > 1 ? (
+        <Swiper
+          modules={[Pagination, Autoplay]}
+          loop={true}
+          spaceBetween={0}
+          slidesPerView={1}
+          speed={800}
+          autoplay={{
+            delay: 5500,
+            disableOnInteraction: false,
+          }}
+          pagination={{
+            clickable: true,
+          }}
+          onSwiper={handleSwiperInit}
+          className="w-full h-full"
+        >
+          {images.map((src, index) => (
+            <SwiperSlide key={index}>
+              <div className="relative w-full h-full">
+                <Image
+                  src={src}
+                  alt={`${name} - фото ${index + 1}`}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  priority={index === 0}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      ) : (
+        <div className="relative w-full h-full">
+          <Image
+            src={images[0]}
+            alt={`${name} - фото`}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
+      )}
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none z-10" />
 
@@ -95,36 +108,38 @@ export function ModelCard({
         </div>
       </div>
 
-      <style jsx global>{`
-        .swiper-pagination {
-          top: 20px !important;
-          left: 20px !important;
-          bottom: auto !important;
-          width: auto !important;
-          text-align: left !important;
-        }
-        
-        .swiper-pagination-bullet {
-          width: 8px !important;
-          height: 8px !important;
-          background: rgba(255, 255, 255, 0.4) !important;
-          border-radius: 50% !important;
-          margin: 0 4px !important;
-          transition: all 0.3s ease !important;
-          cursor: pointer !important;
-          opacity: 1 !important;
-        }
-        
-        .swiper-pagination-bullet-active {
-          background: rgba(255, 255, 255, 0.9) !important;
-          transform: scale(1.2) !important;
-        }
-        
-        .swiper-pagination-bullet:hover {
-          background: rgba(255, 255, 255, 0.7) !important;
-          transform: scale(1.1) !important;
-        }
-      `}</style>
+      {images.length > 1 && (
+        <style jsx global>{`
+          .swiper-pagination {
+            top: 20px !important;
+            left: 20px !important;
+            bottom: auto !important;
+            width: auto !important;
+            text-align: left !important;
+          }
+          
+          .swiper-pagination-bullet {
+            width: 8px !important;
+            height: 8px !important;
+            background: rgba(255, 255, 255, 0.4) !important;
+            border-radius: 50% !important;
+            margin: 0 4px !important;
+            transition: all 0.3s ease !important;
+            cursor: pointer !important;
+            opacity: 1 !important;
+          }
+          
+          .swiper-pagination-bullet-active {
+            background: rgba(255, 255, 255, 0.9) !important;
+            transform: scale(1.2) !important;
+          }
+          
+          .swiper-pagination-bullet:hover {
+            background: rgba(255, 255, 255, 0.7) !important;
+            transform: scale(1.1) !important;
+          }
+        `}</style>
+      )}
     </div>
   )
 } 

@@ -4,6 +4,7 @@ import { Crown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { CircularShadow } from "@/components/ui/circular-shadow"
 import type { SiteSettings } from "@/lib/get-site-settings"
+import Link from "next/link"
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   settings: SiteSettings
@@ -20,24 +21,22 @@ export default function HeroSection({ settings, className, ...props }: HeroSecti
           <div className="bg-primary rounded-lg p-3 lg:p-4">
             <Crown className="w-6 h-6 lg:w-8 lg:h-8 text-primary-foreground" />
           </div>
-          <div className="w-16 h-px bg-primary/30" />
         </div>
         
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-          Л.К.С - зона вашего комфорта.
+          N.N - зона вашего комфорта.
         </h1>
 
         <p className="text-lg sm:text-xl lg:text-2xl text-muted-foreground font-normal mb-8">
           Исполним любое желание.
         </p>
 
-        <Button
-          size="lg"
-          variant="default"
-          className="text-base lg:text-lg px-8 py-4 lg:px-10 lg:py-5 rounded-full font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
+        <Link
+          href="/models"
+          className="text-base lg:text-lg px-8 py-4 lg:px-10 lg:py-5 rounded-full font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300 bg-primary text-primary-foreground"
         >
           ВЫБРАТЬ МОДЕЛЬ
-        </Button>
+        </Link>
 
         <p className="mt-12 text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-2xl font-normal">
           {settings.hero_description}

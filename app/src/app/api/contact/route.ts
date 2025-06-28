@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { telegram_settings, contact_requests } from "@/lib/db/schema"
+import { ContactFormSchema } from "@/lib/validations"
+import { z } from "zod"
 
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>()
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000 // 15 минут
@@ -46,21 +48,6 @@ function cleanupRateLimit() {
   }
 }
 
-function validatePhoneNumber(phone: string): boolean {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/
-  const cleanPhone = phone.replace(/[\s\-\(\)]/g, '')
-  return phoneRegex.test(cleanPhone) && cleanPhone.length >= 10 && cleanPhone.length <= 15
-}
-
-function validateName(name: string): boolean {
-  const nameRegex = /^[a-zA-Zа-яА-ЯёЁ\s]{2,50}$/
-  return nameRegex.test(name.trim())
-}
-
-function sanitizeInput(input: string): string {
-  return input.trim().replace(/[<>]/g, '')
-}
-
 async function getTelegramSettings() {
   const settings = await db.select().from(telegram_settings).limit(1)
   return settings[0] || null
@@ -80,77 +67,75 @@ export const POST = async (req: NextRequest) => {
     }
 
     const body = await req.json().catch(() => ({}))
-    const { name: rawName, phone: rawPhone } = body
-
-    if (!rawName || !rawPhone) {
-      return NextResponse.json(
-        { message: "Имя и номер телефона обязательны" },
-        { status: 400 }
-      )
-    }
-
-    const name = sanitizeInput(rawName)
-    const phone = sanitizeInput(rawPhone)
-
-    if (!validateName(name)) {
-      return NextResponse.json(
-        { message: "Имя должно содержать только буквы и быть длиной от 2 до 50 символов" },
-        { status: 400 }
-      )
-    }
-
-    if (!validatePhoneNumber(phone)) {
-      return NextResponse.json(
-        { message: "Введите корректный номер телефона" },
-        { status: 400 }
-      )
-    }
-
-    await db.insert(contact_requests).values({
-      name,
-      phone,
-      status: 'new'
-    })
-
-    const settings = await getTelegramSettings()
     
-    if (!settings?.bot_token || !settings?.subscriber_chat_id || !settings?.is_active) {
-      console.log("Telegram notifications not configured or inactive")
-      return NextResponse.json({ 
-        message: "Заявка принята! Мы свяжемся с вами в ближайшее время." 
-      })
-    }
-
-    const message = `🔔 Новая заявка с сайта!\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}\n\n⏰ Время: ${new Date().toLocaleString('ru-RU')}`
-
     try {
-      const telegramResponse = await fetch(`https://api.telegram.org/bot${settings.bot_token}/sendMessage`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chat_id: settings.subscriber_chat_id,
-          text: message,
-          parse_mode: "HTML",
-        }),
-        signal: AbortSignal.timeout(10000)
+      const validatedData = ContactFormSchema.parse({
+        name: body.name,
+        phone: body.phone,
+        privacy: true // На бэкенде считаем, что согласие уже дано
       })
 
-      if (!telegramResponse.ok) {
-        const errorData = await telegramResponse.json().catch(() => ({}))
-        console.error("Telegram API error:", { 
-          status: telegramResponse.status, 
-          error: errorData.description || 'Unknown error' 
+      const { name, phone } = validatedData
+
+      await db.insert(contact_requests).values({
+        name,
+        phone,
+        status: 'new'
+      })
+
+      const settings = await getTelegramSettings()
+      
+      if (!settings?.bot_token || !settings?.subscriber_chat_id || !settings?.is_active) {
+        console.log("Telegram notifications not configured or inactive")
+        return NextResponse.json({ 
+          message: "Заявка принята! Мы свяжемся с вами в ближайшее время." 
         })
       }
-    } catch (telegramError) {
-      console.error("Telegram request failed:", telegramError instanceof Error ? telegramError.message : 'Unknown error')
-    }
 
-    return NextResponse.json({ 
-      message: "Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время." 
-    })
+      const message = `🔔 Новая заявка с сайта!\n\n👤 Имя: ${name}\n📞 Телефон: ${phone}\n\n⏰ Время: ${new Date().toLocaleString('ru-RU')}`
+
+      try {
+        const telegramResponse = await fetch(`https://api.telegram.org/bot${settings.bot_token}/sendMessage`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            chat_id: settings.subscriber_chat_id,
+            text: message,
+            parse_mode: "HTML",
+          }),
+          signal: AbortSignal.timeout(10000)
+        })
+
+        if (!telegramResponse.ok) {
+          const errorData = await telegramResponse.json().catch(() => ({}))
+          console.error("Telegram API error:", { 
+            status: telegramResponse.status, 
+            error: errorData.description || 'Unknown error' 
+          })
+        }
+      } catch (telegramError) {
+        console.error("Telegram request failed:", telegramError instanceof Error ? telegramError.message : 'Unknown error')
+      }
+
+      return NextResponse.json({ 
+        message: "Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время." 
+      })
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        const firstError = validationError.errors[0]
+        return NextResponse.json(
+          { message: firstError.message },
+          { status: 400 }
+        )
+      }
+      
+      return NextResponse.json(
+        { message: "Ошибка валидации данных" },
+        { status: 400 }
+      )
+    }
 
   } catch (error) {
     console.error("API error:", error instanceof Error ? error.message : 'Unknown error')

@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { models, model_photos } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { verifyAdminToken } from "@/lib/auth-middleware"
+import { ModelSchema } from "@/lib/validations"
+import { z } from "zod"
 
-export const GET = async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const GET = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const modelId = parseInt(params.id)
+    await verifyAdminToken(req)
+    
+    const resolvedParams = await params
+    const modelId = parseInt(resolvedParams.id)
     
     if (isNaN(modelId)) {
       return NextResponse.json(
@@ -32,6 +38,9 @@ export const GET = async (req: NextRequest, { params }: { params: { id: string }
       }
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error fetching model:", error)
     return NextResponse.json(
       { error: "Ошибка получения модели" },
@@ -42,6 +51,8 @@ export const GET = async (req: NextRequest, { params }: { params: { id: string }
 
 export const PUT = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
+    await verifyAdminToken(req)
+    
     const resolvedParams = await params
     const modelId = parseInt(resolvedParams.id)
     
@@ -53,28 +64,16 @@ export const PUT = async (req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     const body = await req.json()
-    const { name, age, description, price, photos = [], is_active } = body
-
-    if (!name || !age) {
-      return NextResponse.json(
-        { error: "Имя и возраст обязательны" },
-        { status: 400 }
-      )
-    }
-
-    if (typeof age !== 'number' || age < 16 || age > 99) {
-      return NextResponse.json(
-        { error: "Возраст должен быть числом от 16 до 99" },
-        { status: 400 }
-      )
-    }
-
-    if (price && (typeof price !== 'number' || price < 0)) {
-      return NextResponse.json(
-        { error: "Цена должна быть положительным числом" },
-        { status: 400 }
-      )
-    }
+    
+    try {
+      const validatedData = ModelSchema.parse({
+        name: body.name,
+        age: body.age,
+        description: body.description,
+        price: body.price,
+        photos: body.photos || [],
+        is_active: body.is_active ?? true
+      })
 
     const existingModel = await db.select().from(models).where(eq(models.id, modelId)).limit(1)
     
@@ -85,30 +84,43 @@ export const PUT = async (req: NextRequest, { params }: { params: Promise<{ id: 
       )
     }
 
-    await db.update(models).set({
-      name: name.trim(),
-      age,
-      description: description?.trim() || null,
-      price: price || null,
-      is_active: is_active ?? true,
-      updated_at: new Date()
-    }).where(eq(models.id, modelId))
+      await db.update(models).set({
+        name: validatedData.name.trim(),
+        age: validatedData.age,
+        description: validatedData.description?.trim() || null,
+        price: validatedData.price ? validatedData.price.toString() : null,
+        is_active: validatedData.is_active,
+        updated_at: new Date()
+      }).where(eq(models.id, modelId))
 
-    await db.delete(model_photos).where(eq(model_photos.model_id, modelId))
+      await db.delete(model_photos).where(eq(model_photos.model_id, modelId))
 
-    if (photos.length > 0) {
-      await db.insert(model_photos).values(
-        photos.map((photoUrl: string) => ({
-          model_id: modelId,
-          photo_url: photoUrl
-        }))
-      )
+      if (validatedData.photos.length > 0) {
+        await db.insert(model_photos).values(
+          validatedData.photos.map((photoUrl: string) => ({
+            model_id: modelId,
+            photo_url: photoUrl
+          }))
+        )
+      }
+
+      return NextResponse.json({
+        message: "Модель успешно обновлена"
+      })
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        const firstError = validationError.errors[0]
+        return NextResponse.json(
+          { error: firstError.message },
+          { status: 400 }
+        )
+      }
+      throw validationError
     }
-
-    return NextResponse.json({
-      message: "Модель успешно обновлена"
-    })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error updating model:", error)
     return NextResponse.json(
       { error: "Ошибка обновления модели" },
@@ -119,6 +131,8 @@ export const PUT = async (req: NextRequest, { params }: { params: Promise<{ id: 
 
 export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
+    await verifyAdminToken(req)
+    
     const resolvedParams = await params
     const modelId = parseInt(resolvedParams.id)
     
@@ -145,6 +159,9 @@ export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ i
       message: "Модель успешно удалена"
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error deleting model:", error)
     return NextResponse.json(
       { error: "Ошибка удаления модели" },

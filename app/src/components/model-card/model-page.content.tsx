@@ -5,54 +5,20 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ModelCard } from "@/components/model-card/model-card"
-import { Loader2, ArrowLeft, Phone, Calendar, DollarSign, ImageIcon, Heart, MapPin, Star, Mail, MessageCircle, Clock } from "lucide-react"
-import { usePublicModel } from "@/hooks/use-public-models"
-import { contacts } from "@/hooks/use-contacts"
+import { ArrowLeft, Phone, Calendar, DollarSign, ImageIcon, MapPin, Star, MessageCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
-import ContactForm from "@/components/contact-form"
+import SimpleContactForm from "@/components/simple-contact-form"
 import OtherModelsSection from "@/components/other-models-section"
+import type { Model } from "@/lib/get-models"
+import type { SiteSettings } from "@/lib/get-site-settings"
 
+interface ModelPageContentProps {
+  model: Model
+  settings: SiteSettings
+}
 
-export function ModelPageContent({ modelId }: { modelId: number }) {
-  const { data, isLoading, error } = usePublicModel(modelId)
+export function ModelPageContent({ model, settings }: ModelPageContentProps) {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
-  
-  const model = data?.model
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-16">
-          <div className="flex justify-center items-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="ml-2">Загрузка информации о модели...</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !model) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">Модель не найдена</h1>
-            <p className="text-muted-foreground mb-6">
-              {error?.message || "Модель с указанным ID не существует или была удалена"}
-            </p>
-            <Link href="/models">
-              <Button>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Вернуться к каталогу
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -169,7 +135,7 @@ export function ModelPageContent({ modelId }: { modelId: number }) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ContactForm />
+                  <SimpleContactForm />
                 </CardContent>
               </Card>
             </div>
@@ -179,7 +145,7 @@ export function ModelPageContent({ modelId }: { modelId: number }) {
 
 
       {/* Other Models Section with Lazy Loading */}
-      <OtherModelsSection currentModelId={modelId} maxModels={8} />
+      <OtherModelsSection currentModelId={model.id} maxModels={8} />
       
       {/* CTA Section */}
       <div className="py-16 bg-gradient-to-r from-primary to-primary/80">
@@ -221,8 +187,8 @@ export function ModelPageContent({ modelId }: { modelId: number }) {
                   </div>
                   <div>
                     <p className="font-medium">Телефон</p>
-                    <a href={`tel:${contacts.phone}`} className="text-primary hover:underline">
-                      {contacts.phone}
+                    <a href={`tel:${settings.phone}`} className="text-primary hover:underline">
+                      {settings.phone}
                     </a>
                   </div>
                 </div>
@@ -233,8 +199,8 @@ export function ModelPageContent({ modelId }: { modelId: number }) {
                   </div>
                   <div>
                     <p className="font-medium">Telegram</p>
-                    <a href={`https://t.me/${contacts.telegram.replace('@', '')}`} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-                      {contacts.telegram}
+                    <a href={`https://t.me/${settings.telegram.replace('@', '')}`} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+                      {settings.telegram}
                     </a>
                   </div>
                 </div>

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, AlertCircle, Settings, User } from "lucide-react"
+import { apiGet, apiPost } from "@/lib/api-client"
 
 const BotTokenSchema = z.object({
   bot_token: z
@@ -82,18 +83,11 @@ export default function TelegramAdminPage() {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000)
       
-      const response = await fetch("/api/telegram/polling", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "status" }),
+      const response = await apiPost("/api/telegram/polling", { action: "status" }, {
         signal: controller.signal
       })
       
       clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
       
       const data = await response.json()
       const validatedData = TelegramStatusSchema.safeParse(data)
@@ -115,15 +109,11 @@ export default function TelegramAdminPage() {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000)
       
-      const response = await fetch("/api/admin/telegram-settings", {
+      const response = await apiGet("/api/admin/telegram-settings", {
         signal: controller.signal
       })
       
       clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
       
       const data = await response.json()
       
@@ -159,20 +149,11 @@ export default function TelegramAdminPage() {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000)
       
-      const response = await fetch("/api/admin/telegram-settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bot_token: trimmedToken }),
+      const response = await apiPost("/api/admin/telegram-settings", { bot_token: trimmedToken }, {
         signal: controller.signal
       })
       
       clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }))
-        showMessage('error', errorData.error || 'Ошибка сохранения токена')
-        return
-      }
       
       showMessage('success', 'Токен успешно сохранен! Система уведомлений перезапускается...')
       setShowTokenForm(false)
@@ -185,7 +166,7 @@ export default function TelegramAdminPage() {
       if (error instanceof Error && error.name === 'AbortError') {
         showMessage('error', 'Время ожидания истекло')
       } else {
-        showMessage('error', 'Ошибка соединения')
+        showMessage('error', error instanceof Error ? error.message : 'Ошибка соединения')
       }
     } finally {
       setLoadingState('saveToken', false)
@@ -198,20 +179,11 @@ export default function TelegramAdminPage() {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000)
       
-      const response = await fetch("/api/telegram/polling", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "reset" }),
+      const response = await apiPost("/api/telegram/polling", { action: "reset" }, {
         signal: controller.signal
       })
       
       clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Неизвестная ошибка' }))
-        showMessage('error', errorData.error || 'Ошибка сброса')
-        return
-      }
       
       showMessage('success', 'Получатель сброшен. Теперь кто-то другой может настроить уведомления.')
       await fetchData()
@@ -219,7 +191,7 @@ export default function TelegramAdminPage() {
       if (error instanceof Error && error.name === 'AbortError') {
         showMessage('error', 'Время ожидания истекло')
       } else {
-        showMessage('error', 'Ошибка сброса настроек')
+        showMessage('error', error instanceof Error ? error.message : 'Ошибка сброса настроек')
       }
     } finally {
       setLoadingState('resetSubscriber', false)
@@ -238,10 +210,10 @@ export default function TelegramAdminPage() {
   }, [message])
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Настройки Telegram</h1>
-        <p className="text-muted-foreground">Управление токеном бота и получателем уведомлений</p>
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Настройки Telegram</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Управление токеном бота и получателем уведомлений</p>
       </div>
 
       {message && (
@@ -251,7 +223,7 @@ export default function TelegramAdminPage() {
         </Alert>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -310,7 +282,7 @@ export default function TelegramAdminPage() {
                   )}
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     onClick={saveToken} 
                     disabled={loading.saveToken || validationErrors.length > 0} 
@@ -325,7 +297,7 @@ export default function TelegramAdminPage() {
                     }} 
                     variant="outline"
                     disabled={loading.saveToken}
-                    className={loading.saveToken ? 'opacity-50 cursor-not-allowed' : ''}
+                    className={`flex-1 sm:flex-initial ${loading.saveToken ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     Отмена
                   </Button>
@@ -387,7 +359,7 @@ export default function TelegramAdminPage() {
           <CardTitle>Инструкция по настройке</CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className="list-decimal list-inside space-y-2 text-sm">
+          <ol className="list-decimal list-inside space-y-2 text-xs sm:text-sm">
             <li><strong>Создайте бота:</strong> Напишите @BotFather в Telegram и выполните команду /newbot</li>
             <li><strong>Получите токен:</strong> Скопируйте токен бота и вставьте его в поле выше</li>
             <li><strong>Автоматический перезапуск:</strong> При смене токена система автоматически перезапустится</li>
@@ -397,8 +369,8 @@ export default function TelegramAdminPage() {
           </ol>
           
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/50 rounded-lg border border-blue-200 dark:border-blue-800">
-            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">💡 Важно знать:</h4>
-            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1 text-sm">💡 Важно знать:</h4>
+            <ul className="text-xs sm:text-sm text-blue-800 dark:text-blue-200 space-y-1">
               <li>• При смене токена старые настройки сбрасываются</li>
               <li>• Нужно заново настроить получателя уведомлений</li>
               <li>• Система автоматически начнет работать с новым ботом</li>

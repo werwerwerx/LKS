@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { models, model_photos } from "@/lib/db/schema"
 import { eq, inArray } from "drizzle-orm"
+import { verifyAdminToken } from "@/lib/auth-middleware"
+import { ModelSchema } from "@/lib/validations"
+import { z } from "zod"
 
-export const GET = async () => {
+export const GET = async (req: NextRequest) => {
   try {
+    await verifyAdminToken(req)
+    
     const allModels = await db
       .select({
         id: models.id,
@@ -46,6 +51,9 @@ export const GET = async () => {
       models: Array.from(modelsMap.values())
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error fetching models:", error)
     return NextResponse.json(
       { error: "Ошибка получения моделей" },
@@ -56,52 +64,55 @@ export const GET = async () => {
 
 export const POST = async (req: NextRequest) => {
   try {
+    await verifyAdminToken(req)
+    
     const body = await req.json()
-    const { name, age, description, price, photos = [] } = body
+    
+    try {
+      const validatedData = ModelSchema.parse({
+        name: body.name,
+        age: body.age,
+        description: body.description,
+        price: body.price,
+        photos: body.photos || [],
+        is_active: body.is_active ?? true
+      })
 
-    if (!name || !age) {
-      return NextResponse.json(
-        { error: "Имя и возраст обязательны" },
-        { status: 400 }
-      )
+      const [newModel] = await db.insert(models).values({
+        name: validatedData.name.trim(),
+        age: validatedData.age,
+        description: validatedData.description?.trim() || null,
+        price: validatedData.price ? validatedData.price.toString() : null,
+        is_active: validatedData.is_active
+      }).returning()
+
+      if (validatedData.photos.length > 0) {
+        await db.insert(model_photos).values(
+          validatedData.photos.map((photoUrl: string) => ({
+            model_id: newModel.id,
+            photo_url: photoUrl
+          }))
+        )
+      }
+
+      return NextResponse.json({
+        message: "Модель успешно создана",
+        model: newModel
+      })
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        const firstError = validationError.errors[0]
+        return NextResponse.json(
+          { error: firstError.message },
+          { status: 400 }
+        )
+      }
+      throw validationError
     }
-
-    if (typeof age !== 'number' || age < 16 || age > 99) {
-      return NextResponse.json(
-        { error: "Возраст должен быть числом от 16 до 99" },
-        { status: 400 }
-      )
-    }
-
-    if (price && (typeof price !== 'number' || price < 0)) {
-      return NextResponse.json(
-        { error: "Цена должна быть положительным числом" },
-        { status: 400 }
-      )
-    }
-
-    const [newModel] = await db.insert(models).values({
-      name: name.trim(),
-      age,
-      description: description?.trim() || null,
-      price: price || null,
-      is_active: true
-    }).returning()
-
-    if (photos.length > 0) {
-      await db.insert(model_photos).values(
-        photos.map((photoUrl: string) => ({
-          model_id: newModel.id,
-          photo_url: photoUrl
-        }))
-      )
-    }
-
-    return NextResponse.json({
-      message: "Модель успешно создана",
-      model: newModel
-    })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error creating model:", error)
     return NextResponse.json(
       { error: "Ошибка создания модели" },
@@ -112,6 +123,8 @@ export const POST = async (req: NextRequest) => {
 
 export const DELETE = async (req: NextRequest) => {
   try {
+    await verifyAdminToken(req)
+    
     const body = await req.json()
     const { ids } = body
 
@@ -129,6 +142,9 @@ export const DELETE = async (req: NextRequest) => {
       message: `Удалено моделей: ${ids.length}`
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error deleting models:", error)
     return NextResponse.json(
       { error: "Ошибка удаления моделей" },

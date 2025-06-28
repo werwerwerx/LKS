@@ -37,7 +37,7 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
               </div>
               <div className="hidden sm:block">
                 <div className="font-bold text-xl lg:text-2xl text-foreground">
-                  Л.К.С
+                  N.N
                 </div>
                 <div className="text-xs lg:text-sm text-muted-foreground font-medium">
                   Элитное модельное агентство

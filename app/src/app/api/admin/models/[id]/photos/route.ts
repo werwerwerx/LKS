@@ -4,11 +4,14 @@ import { model_photos } from "@/lib/db/schema"
 import { eq, and } from "drizzle-orm"
 import { unlink } from 'fs/promises'
 import path from 'path'
+import { verifyAdminToken } from "@/lib/auth-middleware"
 
 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    await verifyAdminToken(request)
+    
     const resolvedParams = await params
     const modelId = parseInt(resolvedParams.id)
     if (isNaN(modelId)) {
@@ -39,6 +42,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       message: "Фотографии успешно добавлены"
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error adding photos:", error)
     return NextResponse.json(
       { error: "Ошибка добавления фотографий" },
@@ -49,6 +55,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    await verifyAdminToken(request)
+    
     const resolvedParams = await params
     const modelId = parseInt(resolvedParams.id)
     if (isNaN(modelId)) {
@@ -89,6 +97,9 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       message: "Фотография успешно удалена"
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error deleting photo:", error)
     return NextResponse.json(
       { error: "Ошибка удаления фотографии" },

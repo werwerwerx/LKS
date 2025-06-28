@@ -2,15 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { telegram_settings } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { verifyAdminToken } from "@/lib/auth-middleware"
+import { TelegramBotTokenSchema } from "@/lib/validations"
+import { z } from "zod"
 
-function validateBotToken(token: string): boolean {
-  if (!token || typeof token !== 'string') return false
-  const tokenRegex = /^\d{8,10}:[a-zA-Z0-9_-]{35}$/
-  return tokenRegex.test(token.trim())
-}
-
-export const GET = async () => {
+export const GET = async (req: NextRequest) => {
   try {
+    await verifyAdminToken(req)
+    
     const settings = await db.select().from(telegram_settings).limit(1)
     const result = settings[0] || null
     
@@ -22,6 +21,9 @@ export const GET = async () => {
       settings: result 
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error fetching Telegram settings:", error)
     return NextResponse.json(
       { error: "Failed to fetch settings" },
@@ -32,6 +34,8 @@ export const GET = async () => {
 
 export const POST = async (req: NextRequest) => {
   try {
+    await verifyAdminToken(req)
+    
     const body = await req.json().catch(() => ({}))
     const { bot_token } = body
 
@@ -42,21 +46,16 @@ export const POST = async (req: NextRequest) => {
       )
     }
 
-    const trimmedToken = bot_token.toString().trim()
-    
-    if (!validateBotToken(trimmedToken)) {
-      return NextResponse.json(
-        { error: "Invalid bot token format" },
-        { status: 400 }
-      )
-    }
-
-    if (trimmedToken.length > 100) {
-      return NextResponse.json(
-        { error: "Bot token too long" },
-        { status: 400 }
-      )
-    }
+    try {
+      const validatedData = TelegramBotTokenSchema.parse({ bot_token })
+      const trimmedToken = validatedData.bot_token.trim()
+      
+      if (trimmedToken.length > 100) {
+        return NextResponse.json(
+          { error: "Bot token too long" },
+          { status: 400 }
+        )
+      }
 
     const existingSettings = await db.select().from(telegram_settings).limit(1)
 
@@ -88,10 +87,23 @@ export const POST = async (req: NextRequest) => {
       console.log("Failed to restart polling, but token was saved")
     }
     
-    return NextResponse.json({ 
-      message: "Settings updated successfully. Telegram bot will restart automatically." 
-    })
+      return NextResponse.json({ 
+        message: "Settings updated successfully. Telegram bot will restart automatically." 
+      })
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        const firstError = validationError.errors[0]
+        return NextResponse.json(
+          { error: firstError.message },
+          { status: 400 }
+        )
+      }
+      throw validationError
+    }
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error saving Telegram settings:", error instanceof Error ? error.message : 'Unknown error')
     return NextResponse.json(
       { error: "Failed to save settings" },
@@ -102,6 +114,8 @@ export const POST = async (req: NextRequest) => {
 
 export const PATCH = async (req: NextRequest) => {
   try {
+    await verifyAdminToken(req)
+    
     const body = await req.json().catch(() => ({}))
     const { is_active, subscriber_chat_id } = body
 
@@ -137,6 +151,9 @@ export const PATCH = async (req: NextRequest) => {
       message: "Settings updated successfully" 
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("Error updating Telegram settings:", error instanceof Error ? error.message : 'Unknown error')
     return NextResponse.json(
       { error: "Failed to update settings" },

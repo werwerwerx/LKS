@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
+import { apiUpload } from "@/lib/api-client"
 
 interface ImageUploadProps {
   onPhotosChange?: (photos: string[]) => void
@@ -68,15 +69,7 @@ export default function ImageUpload({
         formData.append('files', file)
       })
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Ошибка загрузки')
-      }
+      const response = await apiUpload('/api/upload', formData)
 
       const result = await response.json()
       const newPhotoUrls = result.files.map((file: any) => file.url)

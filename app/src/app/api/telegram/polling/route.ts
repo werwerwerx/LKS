@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { telegram_settings } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { verifyAdminToken } from "@/lib/auth-middleware"
 
 interface PollingState {
   isActive: boolean
@@ -259,6 +260,8 @@ const pollingManager = new PollingManager()
 
 export const GET = async (req: NextRequest) => {
   try {
+    await verifyAdminToken(req)
+    
     const settings = await pollingManager.getTelegramSettings()
     
     if (!settings?.bot_token) {
@@ -284,6 +287,9 @@ export const GET = async (req: NextRequest) => {
       instanceId: INSTANCE_ID
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("❌ GET /api/telegram/polling error:", error)
     return NextResponse.json({ 
       error: "Ошибка подключения к базе данных. Проверьте настройки подключения." 
@@ -294,6 +300,10 @@ export const GET = async (req: NextRequest) => {
 export const POST = async (req: NextRequest) => {
   try {
     const { action } = await req.json()
+    
+    if (action !== "restart") {
+      await verifyAdminToken(req)
+    }
 
       if (action === "stop") {
     pollingManager.stopPolling()
@@ -305,16 +315,18 @@ export const POST = async (req: NextRequest) => {
     console.log("🔄 Restarting Telegram polling due to token change...")
     pollingManager.stopPolling()
     
-    setTimeout(async () => {
-      try {
-        await pollingManager.startPolling()
-        console.log("✅ Telegram polling restarted successfully")
-      } catch (error) {
-        console.error("❌ Failed to restart polling:", error)
-      }
-    }, 1000)
+    while (pollingManager.isActive()) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
     
-    return NextResponse.json({ message: "Polling перезапускается с новым токеном" })
+    try {
+      await pollingManager.startPolling()
+      console.log("✅ Telegram polling restarted successfully")
+      return NextResponse.json({ message: "Polling успешно перезапущен с новым токеном" })
+    } catch (error) {
+      console.error("❌ Failed to restart polling:", error)
+      return NextResponse.json({ error: "Ошибка перезапуска polling" }, { status: 500 })
+    }
   }
 
   if (action === "reset") {
@@ -338,6 +350,9 @@ export const POST = async (req: NextRequest) => {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
     console.error("❌ POST /api/telegram/polling error:", error)
     return NextResponse.json({ 
       error: "Ошибка обработки запроса. Проверьте настройки подключения к базе данных." 
