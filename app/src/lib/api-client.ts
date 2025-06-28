@@ -14,9 +14,9 @@ interface ApiRequestOptions extends RequestInit {
 export async function apiRequest(url: string, options: ApiRequestOptions = {}) {
   const { requireAuth = true, headers = {}, ...restOptions } = options
   
-  const requestHeaders: HeadersInit = {
+  const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...headers
+    ...(headers as Record<string, string>)
   }
 
   if (requireAuth) {
@@ -75,8 +75,8 @@ export async function apiDelete(url: string, data?: any, options: ApiRequestOpti
 export async function apiUpload(url: string, formData: FormData, options: ApiRequestOptions = {}) {
   const { requireAuth = true, headers = {}, ...restOptions } = options
   
-  const requestHeaders: HeadersInit = {
-    ...headers
+  const requestHeaders: Record<string, string> = {
+    ...(headers as Record<string, string>)
   }
 
   if (requireAuth) {
