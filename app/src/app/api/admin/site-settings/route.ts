@@ -4,40 +4,12 @@ import { site_settings } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 
 const DEFAULT_SETTINGS = {
-  company_name: "Л.К.С",
-  company_tagline: "Элитное модельное агентство",
-  city_name: "Москва",
-  city_locative: "Москве",
   phone: "+7 996 679 44 78",
   telegram: "@lks_models",
   email: "",
   address: "Офис в Москве: Пресненская наб., 8 стр 1, Москва, Россия",
   inn: "ООО Л.К.С. ИНН 205414867О КПП 658202759 ОГРН 725666120З132",
-  hero_title: "{company_name} - зона вашего комфорта.",
-  hero_subtitle: "Исполним любое желание.",
-  hero_button_text: "ВЫБРАТЬ МОДЕЛЬ",
-  hero_description: "Наше эскорт агентство предлагает премиальные услуги в {city_locative}. С нами заказать профессиональную модель стало гораздо проще. Мы гарантируем полную конфиденциальность каждому клиенту, обеспечивая индивидуальный подбор модели под ваши требования. Наши девушки умеют создавать идеальную атмосферу для любого мероприятия: от деловых встреч до романтических встреч.",
-  perfect_choice_title: "ИДЕАЛЬНЫЙ ВЫБОР",
-  perfect_choice_description: "Мы оказываем услуги профессиональных моделей в Москве, демонстрируя уровень, который нельзя сравнить с обычными услугами сопровождения. Каждая наша модель обладает красотой, интеллектом и шармом, чтобы сделать ваш отдых незабываемым. Если вы хотите провести время с очаровательной девушкой, которая понимает все нюансы светского общения и способна поддержать разговор на любую тему, наше модельное агентство поможет вам найти идеальный вариант.",
-  contact_form_title: "ОСТАЛИСЬ ВОПРОСЫ?",
-  contact_form_subtitle: "Наши менеджеры с {contact_form_subtitle_highlight} ответят на них",
-  contact_form_subtitle_highlight: "удовольствием",
-  form_name_placeholder: "Ваше имя",
-  form_phone_placeholder: "+7 (999) 123-45-67",
-  form_privacy_text: "Соглашаюсь с политикой обработки данных",
-  form_submit_button: "ОТПРАВИТЬ",
-  nav_home: "Главная",
-  nav_catalog: "Каталог",
-  nav_services: "Услуги",
-  nav_contacts: "Контакты",
-  nav_blog: "Блог",
-  nav_cooperation: "Сотрудничество",
-  footer_privacy_policy: "Политика конфиденциальности",
-  footer_user_agreement: "Пользовательское соглашение",
-  header_connect_button: "Связаться",
-  logo_short: "TM",
-  logo_full_line1: "Touch",
-  logo_full_line2: "Models"
+  hero_description: "Наше эскорт агентство предлагает премиальные услуги в Москве. С нами заказать профессиональную модель стало гораздо проще. Мы гарантируем полную конфиденциальность каждому клиенту, обеспечивая индивидуальный подбор модели под ваши требования. Наши девушки умеют создавать идеальную атмосферу для любого мероприятия: от деловых встреч до романтических встреч."
 }
 
 export async function GET() {
@@ -64,13 +36,22 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json()
     
+    const settingsData = {
+      phone: body.phone,
+      telegram: body.telegram,
+      email: body.email,
+      address: body.address,
+      inn: body.inn,
+      hero_description: body.hero_description,
+      updated_at: new Date()
+    }
+    
     const existingSettings = await db.select().from(site_settings).limit(1)
     
     if (existingSettings.length === 0) {
       const newSettings = await db.insert(site_settings).values({
         ...DEFAULT_SETTINGS,
-        ...body,
-        updated_at: new Date()
+        ...settingsData
       }).returning()
       
       return NextResponse.json({
@@ -81,10 +62,7 @@ export async function PUT(req: NextRequest) {
     
     const updatedSettings = await db
       .update(site_settings)
-      .set({
-        ...body,
-        updated_at: new Date()
-      })
+      .set(settingsData)
       .where(eq(site_settings.id, existingSettings[0].id))
       .returning()
     

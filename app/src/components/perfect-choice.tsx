@@ -23,10 +23,10 @@ export default function PerfectChoice({ settings }: PerfectChoiceProps) {
               </div>
 
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 lg:mb-8 leading-tight">
-                {settings.perfect_choice_title}
+                ИДЕАЛЬНЫЙ ВЫБОР
               </h2>
               <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed font-normal">
-                {settings.perfect_choice_description}
+                Мы оказываем услуги профессиональных моделей, демонстрируя уровень, который нельзя сравнить с обычными услугами сопровождения. Каждая наша модель обладает красотой, интеллектом и шармом, чтобы сделать ваш отдых незабываемым. Если вы хотите провести время с очаровательной девушкой, которая понимает все нюансы светского общения и способна поддержать разговор на любую тему, наше модельное агентство поможет вам найти идеальный вариант.
               </p>
             </div>
           </div>

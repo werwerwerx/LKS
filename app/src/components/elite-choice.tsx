@@ -2,7 +2,6 @@
 
 import { Gem } from "lucide-react"
 import { CircularShadow } from "@/components/ui/circular-shadow"
-import { resoureces } from "@/lib/resources"
 
 export default function EliteChoice() {
   return (
@@ -16,11 +15,11 @@ export default function EliteChoice() {
         </div>
 
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8 lg:mb-10 leading-tight max-w-5xl">
-          ЭЛИТНЫЙ ЭСКОРТ В {resoureces.whereAtCity} ИДЕАЛЬНЫЙ ВЫБОР ДЛЯ ДОСУГА
+          ЭЛИТНЫЙ ЭСКОРТ - ИДЕАЛЬНЫЙ ВЫБОР ДЛЯ ДОСУГА
         </h2>
         <div className="max-w-4xl text-start">
           <p className="text-lg lg:text-xl text-muted-foreground leading-relaxed font-normal">
-            Мы оказываем услуги профессиональных моделей в {resoureces.whereAtCity}, демонстрируя уровень, который нельзя сравнить с
+            Мы оказываем услуги профессиональных моделей, демонстрируя уровень, который нельзя сравнить с
             обычными услугами сопровождения. Каждая наша модель обладает красотой, интеллектом и шармом, чтобы сделать
             ваши вечеринки незабываемыми. Если вы хотите провести вечер с очаровательной девушкой, которая понимает
             все нюансы профессиональной работы и способна создать нужную атмосферу, наше премиальное эскорт агентство поможет вам

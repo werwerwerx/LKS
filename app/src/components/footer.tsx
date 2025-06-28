@@ -42,49 +42,27 @@ export default function Footer({ settings }: FooterProps) {
           <div className="flex justify-center">
             <div className="flex items-center space-x-3">
               <div className="w-16 h-16 lg:w-20 lg:h-20 bg-foreground rounded-full flex items-center justify-center">
-                <span className="text-background font-bold text-xl lg:text-2xl">{settings.logo_short}</span>
+                <span className="text-background font-bold text-xl lg:text-2xl">ЛКС</span>
               </div>
               <div className="text-foreground">
-                <div className="font-serif text-2xl lg:text-3xl">{settings.logo_full_line1}</div>
-                <div className="font-serif text-lg lg:text-xl">{settings.logo_full_line2}</div>
+                <div className="font-serif text-2xl lg:text-3xl">Л.К.С</div>
+                <div className="font-serif text-lg lg:text-xl">Models</div>
               </div>
             </div>
           </div>
 
           <div className="flex justify-end">
             <nav className="grid grid-cols-2 gap-4 text-sm lg:text-base">
-              <Link href="#community" className="text-foreground hover:text-muted-foreground transition-colors">
-                {settings.nav_cooperation}
+              <Link href="/" className="text-foreground hover:text-muted-foreground transition-colors">
+                Главная
               </Link>
-              <Link href="#models" className="text-foreground hover:text-muted-foreground transition-colors">
-                {settings.nav_catalog}
-              </Link>
-              <Link href="#blog" className="text-foreground hover:text-muted-foreground transition-colors">
-                {settings.nav_blog}
-              </Link>
-              <Link href="#services" className="text-foreground hover:text-muted-foreground transition-colors">
-                {settings.nav_services}
-              </Link>
-              <Link href="#contacts" className="text-foreground hover:text-muted-foreground transition-colors">
-                {settings.nav_contacts}
+              <Link href="/catalog" className="text-foreground hover:text-muted-foreground transition-colors">
+                Каталог
               </Link>
             </nav>
           </div>
         </div>
 
-        <div className="mt-12 lg:mt-16 pt-6 lg:pt-8 border-t border-border text-sm text-muted-foreground">
-          <p className="mb-2">{settings.inn}</p>
-          <p className="mb-4">{settings.address}</p>
-          <div className="flex space-x-4">
-            <Link href="#privacy" className="underline hover:text-foreground transition-colors">
-              {settings.footer_user_agreement}
-            </Link>
-            <span>/</span>
-            <Link href="#policy" className="underline hover:text-foreground transition-colors">
-              {settings.footer_privacy_policy}
-            </Link>
-          </div>
-        </div>
       </div>
     </footer>
   )

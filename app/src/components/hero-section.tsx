@@ -24,11 +24,11 @@ export default function HeroSection({ settings, className, ...props }: HeroSecti
         </div>
         
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-          {settings.hero_title}
+          Л.К.С - зона вашего комфорта.
         </h1>
 
         <p className="text-lg sm:text-xl lg:text-2xl text-muted-foreground font-normal mb-8">
-          {settings.hero_subtitle}
+          Исполним любое желание.
         </p>
 
         <Button
@@ -36,7 +36,7 @@ export default function HeroSection({ settings, className, ...props }: HeroSecti
           variant="default"
           className="text-base lg:text-lg px-8 py-4 lg:px-10 lg:py-5 rounded-full font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300"
         >
-          {settings.hero_button_text}
+          ВЫБРАТЬ МОДЕЛЬ
         </Button>
 
         <p className="mt-12 text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-2xl font-normal">

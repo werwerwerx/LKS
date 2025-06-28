@@ -30,26 +30,24 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
               <div className="relative">
                 <div className="h-10 w-10 lg:w-12 lg:h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
                   <span className="text-primary-foreground font-bold text-lg lg:text-xl">
-                    {settings.logo_short}
+                    ЛКС
                   </span>
                 </div>
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-background"></div>
               </div>
               <div className="hidden sm:block">
                 <div className="font-bold text-xl lg:text-2xl text-foreground">
-                  {settings.company_name}
+                  Л.К.С
                 </div>
                 <div className="text-xs lg:text-sm text-muted-foreground font-medium">
-                  {settings.company_tagline}
+                  Элитное модельное агентство
                 </div>
               </div>
             </Link>
 
             <nav className="hidden lg:flex items-center space-x-8">
-              <NavLink href="/" icon={Home}>{settings.nav_home}</NavLink>
-              <NavLink href="/models" icon={Users}>{settings.nav_catalog}</NavLink>
-              <NavLink href="#services" icon={Briefcase}>{settings.nav_services}</NavLink>
-              <NavLink href="#contacts" icon={MessageSquare}>{settings.nav_contacts}</NavLink>
+              <NavLink href="/" icon={Home}>Главная</NavLink>
+              <NavLink href="/models" icon={Users}>Каталог</NavLink>
             </nav>
 
             <div className="flex items-center space-x-3 lg:space-x-4">
@@ -67,11 +65,10 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
               >
                 <a href={`https://t.me/${settings.telegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
                   <Send className="w-4 h-4 mr-2" />
-                  {settings.header_connect_button}
+                  Связаться
                 </a>
               </Button>
 
-              {/* Mobile menu button */}
               <Button
                 size="icon"
                 variant="ghost"
@@ -89,7 +86,6 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
         </div>
       </header>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
@@ -97,16 +93,16 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
             <CardContent className="p-6">
               <nav className="space-y-4">
                 <MobileNavLink href="/" icon={Home} onClick={() => setMobileMenuOpen(false)}>
-                  {settings.nav_home}
+                  Главная
                 </MobileNavLink>
                 <MobileNavLink href="/models" icon={Users} onClick={() => setMobileMenuOpen(false)}>
-                  {settings.nav_catalog}
+                  Каталог
                 </MobileNavLink>
                 <MobileNavLink href="#services" icon={Briefcase} onClick={() => setMobileMenuOpen(false)}>
-                  {settings.nav_services}
+                  Услуги
                 </MobileNavLink>
                 <MobileNavLink href="#contacts" icon={MessageSquare} onClick={() => setMobileMenuOpen(false)}>
-                  {settings.nav_contacts}
+                  Контакты
                 </MobileNavLink>
               </nav>
               
@@ -132,7 +128,7 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
                 >
                   <a href={`https://t.me/${settings.telegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer">
                     <Send className="w-4 h-4 mr-2" />
-                    {settings.header_connect_button}
+                    Связаться
                   </a>
                 </Button>
               </div>

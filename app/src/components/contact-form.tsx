@@ -89,21 +89,21 @@ export default function ContactForm({ settings }: ContactFormProps) {
             </div>
 
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 lg:mb-8 leading-tight text-start">
-              {settings.contact_form_title}
+              ОСТАЛИСЬ ВОПРОСЫ?
             </h2>
             <p className="text-lg lg:text-xl text-muted-foreground mb-10 lg:mb-12 font-normal text-start">
-              {settings.contact_form_subtitle}
+              Наши менеджеры с удовольствием ответят на них
             </p>
             
             <form className="space-y-6 w-full" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="name" className="text-muted-foreground text-start block mb-2">{settings.form_name_placeholder}</label>
+                <label htmlFor="name" className="text-muted-foreground text-start block mb-2">Ваше имя</label>
                 <Input
                   id="name"
                   name="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder={settings.form_name_placeholder}
+                  placeholder="Ваше имя"
                   className={`h-12 text-base bg-transparent border-muted text-foreground placeholder:text-muted-foreground rounded-lg ${
                     errors.name ? "border-red-500" : ""
                   }`}
@@ -119,7 +119,7 @@ export default function ContactForm({ settings }: ContactFormProps) {
                   name="phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  placeholder={settings.form_phone_placeholder}
+                  placeholder="+7 (999) 123-45-67"
                   className={`h-12 text-base bg-transparent border-muted text-foreground placeholder:text-muted-foreground rounded-lg ${
                     errors.phone ? "border-red-500" : ""
                   }`}
@@ -137,13 +137,13 @@ export default function ContactForm({ settings }: ContactFormProps) {
                   required 
                 />
                 <label htmlFor="privacy" className="text-primary text-base cursor-pointer text-start">
-                  {settings.form_privacy_text}
+                  Соглашаюсь с политикой обработки данных
                 </label>
               </div>
               {errors.privacy && <p className="text-red-500 text-sm">{errors.privacy}</p>}
 
               <Button className="w-full h-12" type="submit">
-                {settings.form_submit_button}
+                ОТПРАВИТЬ
               </Button>
             </form>
           </div>
