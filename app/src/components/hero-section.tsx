@@ -1,8 +1,6 @@
-import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Crown } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { CircularShadow } from "@/components/ui/circular-shadow"
 import type { SiteSettings } from "@/lib/get-site-settings"
 import Link from "next/link"
 
@@ -14,7 +12,6 @@ export default function HeroSection({ settings, className, ...props }: HeroSecti
 
   return (
     <HeroSectionContainer>
-      <CircularShadow position="left" size="sm" />
 
       <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-start relative" style={{ zIndex: 2 }}>
         <div className="flex items-center gap-4 mb-6">

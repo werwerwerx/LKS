@@ -15,7 +15,7 @@ interface OtherModelsSectionProps {
 
 export default function OtherModelsSection({ 
   currentModelId, 
-  maxModels = 8 
+  maxModels = 3 
 }: OtherModelsSectionProps) {
   const [isVisible, setIsVisible] = useState(false)
   const { data, isLoading } = usePublicModels()
@@ -85,20 +85,14 @@ export default function OtherModelsSection({
           </Card>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {otherModels.map((model) => (
                 <div key={model.id} className="animate-in fade-in-50 duration-500">
                   <ModelCard
+                    modelId={model.id}
                     imgSrc={model.photos}
                     name={model.name}
                     age={model.age}
-                    goToModelButton={
-                      <Link href={`/models/${model.id}`}>
-                        <Button className="w-full">
-                          Подробнее
-                        </Button>
-                      </Link>
-                    }
                   />
                 </div>
               ))}

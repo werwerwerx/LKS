@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
+import { Loader2, Save, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import type { SiteSettings } from "@/lib/get-site-settings"
 import { apiGet, apiPut, apiPost } from "@/lib/api-client"
@@ -23,6 +23,7 @@ export default function SiteSettingsPage() {
 
   const fetchSettings = async () => {
     try {
+      setLoading(true)
       const response = await apiGet("/api/admin/site-settings")
       const data = await response.json()
       setSettings(data.settings)
@@ -71,10 +72,31 @@ export default function SiteSettingsPage() {
     setSettings({ ...settings, [key]: value })
   }
 
+  const isAnyLoading = loading || saving || resetting
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-lg">Загрузка настроек...</div>
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1 className="text-2xl sm:text-3xl font-bold">Настройки сайта</h1>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" disabled className="w-full sm:w-auto">
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Сбросить
+            </Button>
+            <Button disabled className="w-full sm:w-auto">
+              <Save className="h-4 w-4 mr-2" />
+              Сохранить
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-lg font-medium">Загрузка настроек...</p>
+          </div>
+        </div>
       </div>
     )
   }
@@ -82,7 +104,12 @@ export default function SiteSettingsPage() {
   if (!settings) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-lg">Ошибка загрузки настроек</div>
+        <div className="text-center">
+          <p className="text-lg font-medium text-destructive mb-4">Ошибка загрузки настроек</p>
+          <Button onClick={fetchSettings}>
+            Попробовать снова
+          </Button>
+        </div>
       </div>
     )
   }
@@ -95,19 +122,29 @@ export default function SiteSettingsPage() {
           <Button
             variant="outline"
             onClick={handleReset}
-            disabled={resetting}
+            disabled={isAnyLoading}
             className="w-full sm:w-auto"
           >
+            {resetting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RotateCcw className="h-4 w-4 mr-2" />
+            )}
             {resetting ? "Сброс..." : "Сбросить"}
           </Button>
-          <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
+          <Button onClick={handleSave} disabled={isAnyLoading} className="w-full sm:w-auto">
+            {saving ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
             {saving ? "Сохранение..." : "Сохранить"}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-6">
-        <Card>
+        <Card className={isAnyLoading ? "opacity-60 pointer-events-none" : ""}>
           <CardHeader>
             <CardTitle>Контактная информация</CardTitle>
           </CardHeader>
@@ -120,6 +157,7 @@ export default function SiteSettingsPage() {
                   value={settings.phone}
                   onChange={(e) => updateSetting("phone", e.target.value)}
                   placeholder="+7 996 679 44 78"
+                  disabled={isAnyLoading}
                 />
               </div>
               <div>
@@ -129,6 +167,7 @@ export default function SiteSettingsPage() {
                   value={settings.telegram}
                   onChange={(e) => updateSetting("telegram", e.target.value)}
                   placeholder="@lks_models"
+                  disabled={isAnyLoading}
                 />
               </div>
             </div>
@@ -140,12 +179,13 @@ export default function SiteSettingsPage() {
                 value={settings.email || ""}
                 onChange={(e) => updateSetting("email", e.target.value)}
                 placeholder="info@lks-models.ru"
+                disabled={isAnyLoading}
               />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={isAnyLoading ? "opacity-60 pointer-events-none" : ""}>
           <CardHeader>
             <CardTitle>Адрес и реквизиты</CardTitle>
           </CardHeader>
@@ -158,6 +198,7 @@ export default function SiteSettingsPage() {
                 onChange={(e) => updateSetting("address", e.target.value)}
                 placeholder="Офис в Москве: Пресненская наб., 8 стр 1, Москва, Россия"
                 rows={2}
+                disabled={isAnyLoading}
               />
             </div>
             <div>
@@ -168,12 +209,13 @@ export default function SiteSettingsPage() {
                 onChange={(e) => updateSetting("inn", e.target.value)}
                 placeholder="ООО N.N. ИНН 205414867О КПП 658202759 ОГРН 725666120З132"
                 rows={2}
+                disabled={isAnyLoading}
               />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={isAnyLoading ? "opacity-60 pointer-events-none" : ""}>
           <CardHeader>
             <CardTitle>Заголовки страниц (Title)</CardTitle>
           </CardHeader>
@@ -185,6 +227,7 @@ export default function SiteSettingsPage() {
                 value={settings.home_title}
                 onChange={(e) => updateSetting("home_title", e.target.value)}
                 placeholder="L.K.S. - Модельное агентство премиум класса в Москве"
+                disabled={isAnyLoading}
               />
             </div>
             <div>
@@ -194,6 +237,7 @@ export default function SiteSettingsPage() {
                 value={settings.models_title}
                 onChange={(e) => updateSetting("models_title", e.target.value)}
                 placeholder="Каталог моделей L.K.S. - Профессиональные модели Москвы"
+                disabled={isAnyLoading}
               />
             </div>
             <div>
@@ -203,6 +247,7 @@ export default function SiteSettingsPage() {
                 value={settings.model_title_template}
                 onChange={(e) => updateSetting("model_title_template", e.target.value)}
                 placeholder="{name}, {age} лет - Профессиональная модель L.K.S."
+                disabled={isAnyLoading}
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Используйте {"{name}"} и {"{age}"} для подстановки имени и возраста модели
@@ -211,7 +256,7 @@ export default function SiteSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={isAnyLoading ? "opacity-60 pointer-events-none" : ""}>
           <CardHeader>
             <CardTitle>Описание на главной</CardTitle>
           </CardHeader>
@@ -224,7 +269,11 @@ export default function SiteSettingsPage() {
                 onChange={(e) => updateSetting("hero_description", e.target.value)}
                 placeholder="Наше модельное агентство предлагает премиальные услуги профессиональных моделей..."
                 rows={4}
+                disabled={isAnyLoading}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                {settings.hero_description.length} символов
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -234,12 +283,22 @@ export default function SiteSettingsPage() {
         <Button
           variant="outline"
           onClick={handleReset}
-          disabled={resetting}
+          disabled={isAnyLoading}
           className="w-full sm:w-auto order-2 sm:order-1"
         >
+          {resetting ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <RotateCcw className="h-4 w-4 mr-2" />
+          )}
           {resetting ? "Сброс..." : "Сбросить к умолчанию"}
         </Button>
-        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto order-1 sm:order-2">
+        <Button onClick={handleSave} disabled={isAnyLoading} className="w-full sm:w-auto order-1 sm:order-2">
+          {saving ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4 mr-2" />
+          )}
           {saving ? "Сохранение..." : "Сохранить настройки"}
         </Button>
       </div>

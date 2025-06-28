@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ModelCard } from "@/components/model-card/model-card"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import SimpleContactForm from "@/components/simple-contact-form"
+import { ChevronLeft, ChevronRight, MessageCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Model } from "@/lib/get-models"
 
@@ -45,22 +46,16 @@ export function ModelsPageClient({ models }: ModelsPageClientProps) {
         {currentModels.map((model) => (
           <ModelCard
             key={model.id}
+            modelId={model.id}
             imgSrc={model.photos}
             name={model.name}
             age={model.age}
-            goToModelButton={
-              <Link href={`/models/${model.id}`}>
-                <Button className="w-full">
-                  Подробнее
-                </Button>
-              </Link>
-            }
           />
         ))}
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-4">
+        <div className="flex justify-center items-center space-x-4 mb-16">
           <Button
             variant="outline"
             onClick={goToPrevPage}
@@ -102,8 +97,45 @@ export function ModelsPageClient({ models }: ModelsPageClientProps) {
         </div>
       )}
 
-      <div className="text-center mt-8 text-sm text-muted-foreground">
+      <div className="text-center mt-8 text-sm text-muted-foreground mb-16">
         Показано {startIndex + 1}-{Math.min(endIndex, models.length)} из {models.length} моделей
+      </div>
+
+      {/* Contact Form Section */}
+      <div className="py-16 bg-gradient-to-br from-primary/5 via-background to-muted/20 rounded-2xl">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="bg-primary rounded-lg p-3 lg:p-4">
+                <MessageCircle className="w-6 h-6 lg:w-8 lg:h-8 text-primary-foreground" />
+              </div>
+            </div>
+            
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 leading-tight">
+              ПОНРАВИЛАСЬ МОДЕЛЬ?
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8 font-normal">
+              Оставьте заявку и мы свяжемся с вами для обсуждения деталей встречи
+            </p>
+          </div>
+          
+          <Card className="shadow-xl border-primary/20">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl">Свяжитесь с нами</CardTitle>
+              <CardDescription>
+                Заполните форму и наш менеджер перезвонит вам в течение 15 минут
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SimpleContactForm 
+                buttonText="Связаться с менеджером"
+                namePlaceholder="Как к вам обращаться?"
+                phonePlaceholder="Ваш номер телефона"
+                privacyText="Отправляя заявку, я соглашаюсь на обработку персональных данных и получение звонков"
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </>
   )

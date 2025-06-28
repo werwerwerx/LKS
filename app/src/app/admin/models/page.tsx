@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, AlertCircle, Plus, Edit, Trash2, Users } from "lucide-react"
+import { CheckCircle, AlertCircle, Plus, Edit, Trash2, Users, Loader2 } from "lucide-react"
 import ImageUpload from "@/components/image-upload"
 import { useModels, useCreateModel, useUpdateModel, useDeleteModels } from "@/hooks/use-models"
 
@@ -39,6 +39,15 @@ interface ModelFormData {
   price: number | string
   photos: string[]
   is_active: boolean
+}
+
+interface FieldErrors {
+  name?: string
+  age?: string
+  description?: string
+  price?: string
+  photos?: string
+  general?: string
 }
 
 export default function ModelsAdminPage() {
@@ -85,12 +94,7 @@ export default function ModelsAdminPage() {
     }
   }, [modelsError])
 
-  const createModel = async () => {
-    if (!formData.name.trim() || !formData.age) {
-      showMessage('error', 'Заполните обязательные поля')
-      return
-    }
-
+  const createModel = async (): Promise<{ success: boolean; error?: string }> => {
     try {
       await createModelMutation.mutateAsync({
         name: formData.name.trim(),
@@ -104,18 +108,19 @@ export default function ModelsAdminPage() {
       showMessage('success', 'Модель успешно создана')
       setShowCreateDialog(false)
       resetForm()
+      return { success: true }
     } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Ошибка создания модели')
+      const errorMessage = error instanceof Error ? error.message : 'Ошибка создания модели'
+      return { success: false, error: errorMessage }
     }
   }
 
-  const editModel = async () => {
-    if (!editingModel || !formData.name.trim() || !formData.age) {
-      showMessage('error', 'Заполните обязательные поля')
-      return
-    }
-
+  const editModel = async (): Promise<{ success: boolean; error?: string }> => {
     try {
+      if (!editingModel) {
+        return { success: false, error: 'Модель для редактирования не найдена' }
+      }
+
       await updateModelMutation.mutateAsync({
         id: editingModel.id,
         name: formData.name.trim(),
@@ -130,8 +135,10 @@ export default function ModelsAdminPage() {
       setShowEditDialog(false)
       setEditingModel(null)
       resetForm()
+      return { success: true }
     } catch (error) {
-      showMessage('error', error instanceof Error ? error.message : 'Ошибка обновления модели')
+      const errorMessage = error instanceof Error ? error.message : 'Ошибка обновления модели'
+      return { success: false, error: errorMessage }
     }
   }
 
@@ -180,8 +187,6 @@ export default function ModelsAdminPage() {
     setFormData(prev => ({ ...prev, photos }))
   }, [])
 
-
-
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => setMessage(null), 5000)
@@ -190,6 +195,19 @@ export default function ModelsAdminPage() {
   }, [message])
 
   const isAnyLoading = isLoadingModels || createModelMutation.isPending || updateModelMutation.isPending || deleteModelsMutation.isPending
+
+  if (isLoadingModels) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-lg font-medium">Загрузка данных...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -208,8 +226,12 @@ export default function ModelsAdminPage() {
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button className="w-full sm:w-auto" disabled={isAnyLoading}>
+              {createModelMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4 mr-2" />
+              )}
               Создать модель
             </Button>
           </DialogTrigger>
@@ -241,7 +263,11 @@ export default function ModelsAdminPage() {
             disabled={deleteModelsMutation.isPending}
             className="w-full sm:w-auto"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            {deleteModelsMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4 mr-2" />
+            )}
             <span className="sm:hidden">Удалить ({selectedModels.length})</span>
             <span className="hidden sm:inline">Удалить выбранные ({selectedModels.length})</span>
           </Button>
@@ -260,6 +286,7 @@ export default function ModelsAdminPage() {
                 <Checkbox
                   checked={selectedModels.length === models.length}
                   onCheckedChange={handleSelectAll}
+                  disabled={isAnyLoading}
                 />
                 <Label className="text-xs sm:text-sm">Выбрать все</Label>
               </div>
@@ -267,9 +294,7 @@ export default function ModelsAdminPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoadingModels ? (
-            <div className="text-center py-8">Загрузка моделей...</div>
-          ) : models.length === 0 ? (
+          {models.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               Моделей пока нет. Создайте первую модель!
             </div>
@@ -291,7 +316,7 @@ export default function ModelsAdminPage() {
         </CardContent>
       </Card>
 
-              <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
           <DialogHeader>
             <DialogTitle>Редактировать модель</DialogTitle>
@@ -321,7 +346,7 @@ export default function ModelsAdminPage() {
 interface ModelFormProps {
   formData: ModelFormData
   setFormData: React.Dispatch<React.SetStateAction<ModelFormData>>
-  onSubmit: () => void
+  onSubmit: () => Promise<{ success: boolean; error?: string }>
   onCancel: () => void
   loading: boolean
   onPhotosChange: (photos: string[]) => void
@@ -329,8 +354,106 @@ interface ModelFormProps {
 }
 
 function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onPhotosChange, isEdit = false }: ModelFormProps) {
+  const [errors, setErrors] = useState<FieldErrors>({})
+  const [submitError, setSubmitError] = useState<string>('')
+  const [hasTriedSubmit, setHasTriedSubmit] = useState(false)
+
+  const validateField = (name: string, value: string | number): string | undefined => {
+    switch (name) {
+      case 'name':
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          return 'Имя модели обязательно'
+        }
+        if (typeof value === 'string' && value.length > 100) {
+          return 'Имя слишком длинное (максимум 100 символов)'
+        }
+        break
+      case 'age':
+        const ageNum = Number(value)
+        if (!value || isNaN(ageNum)) {
+          return 'Возраст обязателен'
+        }
+        if (ageNum < 16 || ageNum > 99) {
+          return 'Возраст должен быть от 16 до 99 лет'
+        }
+        break
+      case 'description':
+        if (typeof value === 'string' && value.length > 500) {
+          return 'Описание слишком длинное (максимум 500 символов)'
+        }
+        break
+      case 'price':
+        if (value && Number(value) < 0) {
+          return 'Цена не может быть отрицательной'
+        }
+        break
+    }
+    return undefined
+  }
+
+  const handleFieldChange = (name: string, value: string | number | boolean) => {
+    setFormData(prev => ({ ...prev, [name]: value }))
+    setSubmitError('')
+    
+    if (name !== 'is_active' && hasTriedSubmit) {
+      const error = validateField(name, value as string | number)
+      setErrors(prev => ({ ...prev, [name]: error }))
+    }
+  }
+
+  const handleSubmit = async () => {
+    setHasTriedSubmit(true)
+    const newErrors: FieldErrors = {}
+    setSubmitError('')
+    
+    const nameError = validateField('name', formData.name)
+    if (nameError) newErrors.name = nameError
+    
+    const ageError = validateField('age', formData.age)
+    if (ageError) newErrors.age = ageError
+    
+    const descError = validateField('description', formData.description)
+    if (descError) newErrors.description = descError
+    
+    const priceError = validateField('price', formData.price)
+    if (priceError) newErrors.price = priceError
+    
+    if (formData.photos.length === 0) {
+      newErrors.photos = 'Необходимо загрузить хотя бы одну фотографию'
+    }
+    
+    setErrors(newErrors)
+    
+    if (Object.keys(newErrors).length === 0) {
+      const result = await onSubmit()
+      if (!result.success && result.error) {
+        setSubmitError(result.error)
+      }
+    }
+  }
+
+  const shouldShowGeneralError = hasTriedSubmit && Object.keys(errors).length > 0
+
   return (
     <div className="space-y-6">
+      {(shouldShowGeneralError || submitError) && (
+        <Alert className="border-red-500 bg-red-50 dark:bg-red-950/20">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription>
+            <div className="space-y-1">
+              {submitError && (
+                <p className="font-medium text-red-800 dark:text-red-200">{submitError}</p>
+              )}
+              {shouldShowGeneralError && (
+                <p className="font-medium text-red-800 dark:text-red-200">
+                  Исправьте ошибки в форме перед отправкой
+                </p>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -338,10 +461,12 @@ function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onPhoto
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => handleFieldChange('name', e.target.value)}
               placeholder="Введите имя модели"
               disabled={loading}
+              className={errors.name ? 'border-red-500' : ''}
             />
+            {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
           </div>
 
           <div>
@@ -352,10 +477,12 @@ function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onPhoto
               min="16"
               max="99"
               value={formData.age}
-              onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+              onChange={(e) => handleFieldChange('age', e.target.value)}
               placeholder="Введите возраст"
               disabled={loading}
+              className={errors.age ? 'border-red-500' : ''}
             />
+            {errors.age && <p className="text-sm text-red-500 mt-1">{errors.age}</p>}
           </div>
         </div>
 
@@ -367,10 +494,12 @@ function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onPhoto
             min="0"
             step="100"
             value={formData.price}
-            onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+            onChange={(e) => handleFieldChange('price', e.target.value)}
             placeholder="Введите цену за час"
             disabled={loading}
+            className={errors.price ? 'border-red-500' : ''}
           />
+          {errors.price && <p className="text-sm text-red-500 mt-1">{errors.price}</p>}
         </div>
 
         <div>
@@ -378,18 +507,23 @@ function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onPhoto
           <Textarea
             id="description"
             value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            onChange={(e) => handleFieldChange('description', e.target.value)}
             placeholder="Введите описание модели"
             rows={3}
             disabled={loading}
+            className={errors.description ? 'border-red-500' : ''}
           />
+          {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description}</p>}
+          <p className="text-xs text-muted-foreground mt-1">
+            {formData.description.length}/500 символов
+          </p>
         </div>
 
         <div className="flex items-center space-x-2">
           <Checkbox
             id="is_active"
             checked={formData.is_active}
-            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: !!checked }))}
+            onCheckedChange={(checked) => handleFieldChange('is_active', !!checked)}
             disabled={loading}
           />
           <Label htmlFor="is_active">Активная модель</Label>
@@ -397,17 +531,22 @@ function ModelForm({ formData, setFormData, onSubmit, onCancel, loading, onPhoto
       </div>
 
       <div>
-        <Label>Фотографии</Label>
+        <Label className={errors.photos ? 'text-red-500' : ''}>
+          Фотографии *
+        </Label>
         <ImageUpload 
           onPhotosChange={onPhotosChange}
           existingPhotos={formData.photos}
           maxFiles={10}
           maxSize={5}
+          className={errors.photos ? 'border-red-500 rounded-lg' : ''}
         />
+        {errors.photos && <p className="text-sm text-red-500 mt-1">{errors.photos}</p>}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2">
-        <Button onClick={onSubmit} disabled={loading} className="flex-1 order-1">
+        <Button onClick={handleSubmit} disabled={loading} className="flex-1 order-1">
+          {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           {isEdit ? 'Обновить' : 'Создать'}
         </Button>
         <Button onClick={onCancel} variant="outline" disabled={loading} className="flex-1 sm:flex-initial order-2">
@@ -452,15 +591,19 @@ function ModelCard({ model, isSelected, onSelect, onEdit, onDelete, loading }: M
           </Badge>
           <div className="flex items-center gap-1 sm:gap-2">
             <Link href={`/models/${model.id}`} target="_blank">
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" disabled={loading}>
                 <Users className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </Link>
-            <Button size="sm" variant="outline" onClick={onEdit}>
+            <Button size="sm" variant="outline" onClick={onEdit} disabled={loading}>
               <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             <Button size="sm" variant="destructive" onClick={onDelete} disabled={loading}>
-              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+              {loading ? (
+                <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+              )}
             </Button>
           </div>
         </div>

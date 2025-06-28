@@ -2,9 +2,10 @@
 
 import type React from "react"
 import { useState, useCallback, useRef, useEffect } from "react"
-import { Upload, X, Plus, Loader2, Trash2 } from "lucide-react"
+import { Upload, X, Plus, Loader2, Trash2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { apiUpload } from "@/lib/api-client"
@@ -18,6 +19,11 @@ interface ImageUploadProps {
   className?: string
 }
 
+interface UploadProgress {
+  progress: number
+  fileName: string
+}
+
 export default function ImageUpload({
   onPhotosChange,
   existingPhotos = [],
@@ -28,8 +34,9 @@ export default function ImageUpload({
 }: ImageUploadProps) {
   const [currentPhotos, setCurrentPhotos] = useState<string[]>(existingPhotos)
   const [isDragOver, setIsDragOver] = useState(false)
-  const [error, setError] = useState<string>("")
+  const [errors, setErrors] = useState<string[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -40,44 +47,95 @@ export default function ImageUpload({
     onPhotosChange?.(currentPhotos)
   }, [currentPhotos, onPhotosChange])
 
+  const addError = (error: string) => {
+    setErrors(prev => [...prev, error])
+  }
+
+  const clearErrors = () => {
+    setErrors([])
+  }
+
   const validateFile = (file: File): string | null => {
     if (!acceptedTypes.includes(file.type)) {
-      return `Тип файла ${file.type} не поддерживается`
+      return `Файл "${file.name}" имеет неподдерживаемый тип (${file.type})`
     }
     if (file.size > maxSize * 1024 * 1024) {
-      return `Размер файла должен быть меньше ${maxSize}МБ`
+      return `Файл "${file.name}" превышает максимальный размер ${maxSize}МБ (текущий размер: ${(file.size / 1024 / 1024).toFixed(2)}МБ)`
     }
     return null
   }
 
   const uploadFiles = useCallback(async (files: File[]) => {
     if (currentPhotos.length + files.length > maxFiles) {
-      setError(`Максимум ${maxFiles} файлов разрешено`)
+      addError(`Превышено максимальное количество файлов. Максимум: ${maxFiles}, пытаетесь загрузить: ${files.length}, уже загружено: ${currentPhotos.length}`)
       return
     }
 
     setIsUploading(true)
-    setError("")
+    clearErrors()
+
+    // Валидация всех файлов перед загрузкой
+    const validationErrors: string[] = []
+    const validFiles: File[] = []
+
+    files.forEach(file => {
+      const validationError = validateFile(file)
+      if (validationError) {
+        validationErrors.push(validationError)
+      } else {
+        validFiles.push(file)
+      }
+    })
+
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors)
+      setIsUploading(false)
+      return
+    }
+
+    // Инициализация прогресса загрузки
+    setUploadProgress(validFiles.map(file => ({ 
+      progress: 0, 
+      fileName: file.name 
+    })))
 
     try {
       const formData = new FormData()
-      files.forEach(file => {
-        const validationError = validateFile(file)
-        if (validationError) {
-          throw new Error(validationError)
-        }
+      validFiles.forEach(file => {
         formData.append('files', file)
       })
 
+      // Симуляция прогресса (в реальности прогресс можно отслеживать через XMLHttpRequest)
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => prev.map(item => ({
+          ...item,
+          progress: Math.min(item.progress + Math.random() * 30, 90)
+        })))
+      }, 200)
+
       const response = await apiUpload('/api/upload', formData)
+      
+      clearInterval(progressInterval)
+      
+      // Завершение прогресса
+      setUploadProgress(prev => prev.map(item => ({
+        ...item,
+        progress: 100
+      })))
 
       const result = await response.json()
       const newPhotoUrls = result.files.map((file: any) => file.url)
       
       setCurrentPhotos(prev => [...prev, ...newPhotoUrls])
+
+      // Успешное сообщение
+      setTimeout(() => {
+        setUploadProgress([])
+      }, 1000)
+
     } catch (error) {
       console.error('Upload error:', error)
-      setError(error instanceof Error ? error.message : 'Ошибка загрузки файлов')
+      addError(error instanceof Error ? error.message : 'Ошибка загрузки файлов')
     } finally {
       setIsUploading(false)
     }
@@ -134,36 +192,93 @@ export default function ImageUpload({
     fileInputRef.current?.click()
   }
 
+  const remainingSlots = maxFiles - currentPhotos.length
+
   return (
     <div className={cn("w-full space-y-4", className)}>
+      {/* Error Messages */}
+      {errors.length > 0 && (
+        <Alert className="border-red-500 bg-red-50 dark:bg-red-950/50">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription>
+            <div className="space-y-1">
+              <p className="font-medium text-red-800 dark:text-red-200">Ошибки загрузки:</p>
+              <ul className="list-disc list-inside space-y-1 text-sm text-red-700 dark:text-red-300">
+                {errors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Upload Progress */}
+      {uploadProgress.length > 0 && (
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/50">
+          <CardContent className="p-4 space-y-3">
+            <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+              Загрузка файлов...
+            </p>
+            {uploadProgress.map((item, index) => (
+              <div key={index} className="space-y-2">
+                <div className="flex justify-between text-xs text-blue-700 dark:text-blue-300">
+                  <span className="truncate">{item.fileName}</span>
+                  <span>{Math.round(item.progress)}%</span>
+                </div>
+                <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                    style={{ width: `${item.progress}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Upload Area */}
       <Card
         className={cn(
           "border-2 border-dashed transition-colors cursor-pointer",
           isDragOver ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-muted-foreground/50",
-          isUploading && "opacity-50 cursor-not-allowed"
+          isUploading && "opacity-50 cursor-not-allowed",
+          remainingSlots === 0 && "opacity-40 cursor-not-allowed"
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={!isUploading ? openFileDialog : undefined}
+        onClick={!isUploading && remainingSlots > 0 ? openFileDialog : undefined}
       >
         <CardContent className="flex flex-col items-center justify-center p-8 text-center">
           <div className="mb-4">
             {isUploading ? (
               <Loader2 className="h-10 w-10 text-primary animate-spin" />
             ) : (
-              <Upload className="h-10 w-10 text-muted-foreground" />
+              <Upload className={cn(
+                "h-10 w-10",
+                remainingSlots === 0 ? "text-muted-foreground/50" : "text-muted-foreground"
+              )} />
             )}
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">
-              {isUploading ? 'Загружаем файлы...' : 'Перетащите изображения сюда или нажмите для выбора'}
+              {isUploading 
+                ? 'Загружаем файлы...' 
+                : remainingSlots === 0 
+                  ? 'Достигнуто максимальное количество файлов'
+                  : 'Перетащите изображения сюда или нажмите для выбора'
+              }
             </p>
-            <p className="text-xs text-muted-foreground">Поддерживает JPEG, PNG, WebP, GIF до {maxSize}МБ каждый</p>
-            <p className="text-xs text-muted-foreground">Максимум {maxFiles} файлов</p>
+            <p className="text-xs text-muted-foreground">
+              Поддерживает JPEG, PNG, WebP, GIF до {maxSize}МБ каждый
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Можно загрузить еще: {remainingSlots} из {maxFiles} файлов
+            </p>
           </div>
-          {!isUploading && (
+          {!isUploading && remainingSlots > 0 && (
             <Button
               type="button"
               variant="outline"
@@ -189,18 +304,30 @@ export default function ImageUpload({
         accept={acceptedTypes.join(",")}
         onChange={handleFileSelect}
         className="hidden"
-        disabled={isUploading}
+        disabled={isUploading || remainingSlots === 0}
       />
-
-      {/* Error Message */}
-      {error && <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>}
 
       {/* Current Photos */}
       {currentPhotos.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">
-            Изображения ({currentPhotos.length}/{maxFiles})
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium">
+              Загруженные изображения ({currentPhotos.length}/{maxFiles})
+            </h3>
+            {currentPhotos.length > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPhotos([])}
+                disabled={isUploading}
+                className="text-xs"
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                Удалить все
+              </Button>
+            )}
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {currentPhotos.map((photoUrl, index) => (
               <Card key={`${photoUrl}-${index}`} className="relative group overflow-hidden">
@@ -220,9 +347,13 @@ export default function ImageUpload({
                         size="sm"
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => removePhoto(photoUrl)}
+                        disabled={isUploading}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
+                    </div>
+                    <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium">
+                      {index + 1}
                     </div>
                   </div>
                 </CardContent>

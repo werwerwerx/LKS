@@ -1,13 +1,11 @@
 "use client"
 
 import { Gem } from "lucide-react"
-import { CircularShadow } from "@/components/ui/circular-shadow"
 
 export default function EliteChoice() {
   return (
     <section className="py-20 lg:py-24 relative overflow-hidden">
       <div className="container mx-auto px-6 relative w-full max-w-7xl" style={{ zIndex: 2 }}>
-      <CircularShadow position="left" size="md" />
         <div className="flex items-center gap-4 mb-6">
           <div className="bg-primary rounded-lg p-3 lg:p-4">
             <Gem className="w-6 h-6 lg:w-8 lg:h-8 text-primary-foreground"  />

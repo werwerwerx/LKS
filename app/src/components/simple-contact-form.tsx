@@ -8,7 +8,19 @@ import { ContactFormSchema } from "@/lib/validations"
 import { z } from "zod"
 import { onSubmitForm } from "@/shared/on-submit-form"
 
-export default function SimpleContactForm() {
+interface SimpleContactFormProps {
+  buttonText?: string
+  namePlaceholder?: string
+  phonePlaceholder?: string
+  privacyText?: string
+}
+
+export default function SimpleContactForm({ 
+  buttonText = "Отправить заявку",
+  namePlaceholder = "Ваше имя",
+  phonePlaceholder = "+7 (999) 123-45-67",
+  privacyText = "Отправляя заявку, я соглашаюсь с политикой обработки данных"
+}: SimpleContactFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -71,7 +83,7 @@ export default function SimpleContactForm() {
           name="name"
           value={formData.name}
           onChange={(e) => handleInputChange("name", e.target.value)}
-          placeholder="Ваше имя"
+          placeholder={namePlaceholder}
           className={`${errors.name ? "border-red-500" : ""}`}
           required
         />
@@ -83,7 +95,7 @@ export default function SimpleContactForm() {
           name="phone"
           value={formData.phone}
           onChange={(e) => handleInputChange("phone", e.target.value)}
-          placeholder="+7 (999) 123-45-67"
+          placeholder={phonePlaceholder}
           className={`${errors.phone ? "border-red-500" : ""}`}
           required
         />
@@ -91,13 +103,19 @@ export default function SimpleContactForm() {
       </div>
 
       <div className="flex items-start space-x-3 pt-3">
+        <Checkbox
+          checked={formData.privacy}
+          onCheckedChange={(checked) => handleInputChange("privacy", !!checked)}
+          className={`${errors.privacy ? "border-red-500" : ""}`}
+        />
         <label className="text-sm cursor-pointer text-start">
-          Отправляя заявку, я соглашаюсь с политикой обработки данных
+          {privacyText}
         </label>
       </div>
+      {errors.privacy && <p className="text-red-500 text-sm mt-1">{errors.privacy}</p>}
 
       <Button className="w-full" type="submit">
-        Отправить заявку
+        {buttonText}
       </Button>
     </form>
   )

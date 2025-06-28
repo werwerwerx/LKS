@@ -2,12 +2,14 @@
 
 import type * as React from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Loader2, ImageIcon } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Pagination, Autoplay } from "swiper/modules"
-import { useRef, useCallback } from "react"
+import { useRef, useCallback, useState } from "react"
 import type { Swiper as SwiperType } from "swiper"
+import { useRouter } from "next/navigation"
 
 import "swiper/css"
 import "swiper/css/pagination"
@@ -16,25 +18,72 @@ export interface IModelCardProps {
   imgSrc: string[]
   name: string
   age: number
+  modelId?: number
   goToModelButton?: React.ReactNode
 }
+
+const PlaceholderImage = () => (
+  <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
+    <ImageIcon className="w-16 h-16 text-muted-foreground/50" />
+  </div>
+)
 
 export function ModelCard({
   imgSrc,
   name,
   age,
+  modelId,
   goToModelButton,
   ...props
 }: IModelCardProps & React.HTMLAttributes<HTMLDivElement>) {
   const swiperRef = useRef<SwiperType | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set())
+  const router = useRouter()
 
-  const images = imgSrc?.length > 0 ? imgSrc : ["/placeholder.svg"]
+  const images = imgSrc?.length > 0 ? imgSrc : []
+  const hasValidImages = images.length > 0
 
   const handleSwiperInit = useCallback((swiper: SwiperType) => {
     swiperRef.current = swiper
   }, [])
 
-  const defaultButton = (
+  const handleNavigate = useCallback(async (href: string) => {
+    setIsLoading(true)
+    try {
+      router.push(href)
+      // Сбрасываем спиннер через небольшую задержку для UX
+      setTimeout(() => setIsLoading(false), 1000)
+    } catch (error) {
+      setIsLoading(false)
+    }
+  }, [router])
+
+  const handleImageError = useCallback((index: number) => {
+    setImageErrors(prev => new Set(prev).add(index))
+  }, [])
+
+  const defaultButton = modelId ? (
+    <Button
+      variant="default"
+      size="lg"
+      disabled={isLoading}
+      onClick={() => handleNavigate(`/models/${modelId}`)}
+      className="rounded-full px-5 py-2 text-sm font-medium bg-white/90 text-black hover:bg-white transition-colors duration-300 backdrop-blur-sm shadow-lg"
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          Загрузка...
+        </>
+      ) : (
+        <>
+          Увидеть больше
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </>
+      )}
+    </Button>
+  ) : (
     <Button
       variant="default"
       size="lg"
@@ -49,9 +98,38 @@ export function ModelCard({
     return null
   }
 
+  const renderImage = (src: string, index: number, alt: string) => {
+    if (imageErrors.has(index)) {
+      return <PlaceholderImage />
+    }
+
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover transition-transform duration-500 group-hover:scale-105"
+        priority={index === 0}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        onError={() => handleImageError(index)}
+        onLoadingComplete={() => {
+          if (imageErrors.has(index)) {
+            setImageErrors(prev => {
+              const newSet = new Set(prev)
+              newSet.delete(index)
+              return newSet
+            })
+          }
+        }}
+      />
+    )
+  }
+
   return (
     <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl group cursor-pointer" {...props}>
-      {images.length > 1 ? (
+      {!hasValidImages ? (
+        <PlaceholderImage />
+      ) : images.length > 1 ? (
         <Swiper
           modules={[Pagination, Autoplay]}
           loop={true}
@@ -71,28 +149,14 @@ export function ModelCard({
           {images.map((src, index) => (
             <SwiperSlide key={index}>
               <div className="relative w-full h-full">
-                <Image
-                  src={src}
-                  alt={`${name} - фото ${index + 1}`}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  priority={index === 0}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
+                {renderImage(src, index, `${name} - фото ${index + 1}`)}
               </div>
             </SwiperSlide>
           ))}
         </Swiper>
       ) : (
         <div className="relative w-full h-full">
-          <Image
-            src={images[0]}
-            alt={`${name} - фото`}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+          {renderImage(images[0], 0, `${name} - фото`)}
         </div>
       )}
 
@@ -102,13 +166,13 @@ export function ModelCard({
         <div className="flex justify-between items-end">
           <div className="text-white">
             <h3 className="text-3xl font-bold mb-1 drop-shadow-lg">{name}</h3>
-            <p className="text-lg text-white/90 font-medium">Возраст:{age}</p>
+            <p className="text-lg text-white/90 font-medium">Возраст: {age}</p>
           </div>
           <div className="ml-4">{goToModelButton || defaultButton}</div>
         </div>
       </div>
 
-      {images.length > 1 && (
+      {hasValidImages && images.length > 1 && (
         <style jsx global>{`
           .swiper-pagination {
             top: 20px !important;

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, AlertCircle, Settings, User } from "lucide-react"
+import { CheckCircle, AlertCircle, Settings, User, Loader2, Save, RotateCcw, RefreshCw } from "lucide-react"
 import { apiGet, apiPost } from "@/lib/api-client"
 
 const BotTokenSchema = z.object({
@@ -51,7 +51,8 @@ export default function TelegramAdminPage() {
   const [loading, setLoading] = useState({
     saveToken: false,
     resetSubscriber: false,
-    fetchData: false
+    fetchData: true,
+    refreshStatus: false
   })
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
@@ -137,6 +138,12 @@ export default function TelegramAdminPage() {
     setLoadingState('fetchData', false)
   }
 
+  const refreshStatus = async () => {
+    setLoadingState('refreshStatus', true)
+    await fetchStatus()
+    setLoadingState('refreshStatus', false)
+  }
+
   const saveToken = async () => {
     const trimmedToken = tokenInput.trim()
     
@@ -209,11 +216,46 @@ export default function TelegramAdminPage() {
     }
   }, [message])
 
+  if (loading.fetchData) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Настройки Telegram</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Управление токеном бота и получателем уведомлений</p>
+        </div>
+        
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-lg font-medium">Загрузка настроек...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Настройки Telegram</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">Управление токеном бота и получателем уведомлений</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Настройки Telegram</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Управление токеном бота и получателем уведомлений</p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={refreshStatus}
+            disabled={loading.refreshStatus}
+            className="w-full sm:w-auto"
+          >
+            {loading.refreshStatus ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Обновить статус
+          </Button>
+        </div>
       </div>
 
       {message && (
@@ -224,7 +266,7 @@ export default function TelegramAdminPage() {
       )}
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className={isAnyLoading ? "opacity-60" : ""}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
@@ -269,6 +311,7 @@ export default function TelegramAdminPage() {
                     }}
                     placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
                     className={`mt-1 ${validationErrors.length > 0 ? 'border-red-500' : ''}`}
+                    disabled={loading.saveToken}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     Получите токен у @BotFather в Telegram
@@ -286,8 +329,13 @@ export default function TelegramAdminPage() {
                   <Button 
                     onClick={saveToken} 
                     disabled={loading.saveToken || validationErrors.length > 0} 
-                    className={`flex-1 ${loading.saveToken ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className="flex-1"
                   >
+                    {loading.saveToken ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
                     Сохранить
                   </Button>
                   <Button 
@@ -297,7 +345,7 @@ export default function TelegramAdminPage() {
                     }} 
                     variant="outline"
                     disabled={loading.saveToken}
-                    className={`flex-1 sm:flex-initial ${loading.saveToken ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className="flex-1 sm:flex-initial"
                   >
                     Отмена
                   </Button>
@@ -307,7 +355,7 @@ export default function TelegramAdminPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={isAnyLoading ? "opacity-60" : ""}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
@@ -318,38 +366,42 @@ export default function TelegramAdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {loading.fetchData ? (
-              <p className="text-muted-foreground">Загрузка...</p>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Статус:</span>
-                  <span className={`text-sm ${status?.subscribedChatId ? 'text-green-600' : 'text-gray-600'}`}>
-                    {status?.subscribedChatId ? "✅ Настроен" : "⏳ Не настроен"}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Уведомления:</span>
-                  <span className={`text-sm ${status?.isActive ? 'text-green-600' : 'text-gray-600'}`}>
-                    {status?.isActive ? "🔔 Активны" : "🔕 Неактивны"}
-                  </span>
-                </div>
-
-                <Button 
-                  onClick={resetSubscriber} 
-                  disabled={loading.resetSubscriber || !status?.subscribedChatId}
-                  variant="outline"
-                  className={`w-full ${
-                    (loading.resetSubscriber || !status?.subscribedChatId)
-                      ? 'opacity-50 cursor-not-allowed border-muted text-muted-foreground'
-                      : ''
-                  }`}
-                >
-                  🔄 Сбросить получателя
-                </Button>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Статус:</span>
+                <span className={`text-sm ${status?.subscribedChatId ? 'text-green-600' : 'text-gray-600'}`}>
+                  {status?.subscribedChatId ? "✅ Настроен" : "⏳ Не настроен"}
+                </span>
               </div>
-            )}
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Уведомления:</span>
+                <span className={`text-sm ${status?.isActive ? 'text-green-600' : 'text-gray-600'}`}>
+                  {status?.isActive ? "🔔 Активны" : "🔕 Неактивны"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Система:</span>
+                <span className={`text-sm ${status?.isPolling ? 'text-green-600' : 'text-orange-600'}`}>
+                  {status?.isPolling ? "🟢 Работает" : "🟡 Ожидание"}
+                </span>
+              </div>
+
+              <Button 
+                onClick={resetSubscriber} 
+                disabled={loading.resetSubscriber || !status?.subscribedChatId}
+                variant="outline"
+                className="w-full"
+              >
+                {loading.resetSubscriber ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                )}
+                🔄 Сбросить получателя
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -364,7 +416,7 @@ export default function TelegramAdminPage() {
             <li><strong>Получите токен:</strong> Скопируйте токен бота и вставьте его в поле выше</li>
             <li><strong>Автоматический перезапуск:</strong> При смене токена система автоматически перезапустится</li>
             <li><strong>Настройте получателя:</strong> Напишите боту /start в Telegram и нажмите кнопку подписки</li>
-            <li><strong>Проверьте статус:</strong> Обновите страницу 🔃 через несколько секунд</li>
+            <li><strong>Проверьте статус:</strong> Используйте кнопку "Обновить статус" для проверки</li>
             <li><strong>Готово!</strong> Теперь все заявки с сайта будут приходить в Telegram</li>
           </ol>
           
@@ -374,6 +426,7 @@ export default function TelegramAdminPage() {
               <li>• При смене токена старые настройки сбрасываются</li>
               <li>• Нужно заново настроить получателя уведомлений</li>
               <li>• Система автоматически начнет работать с новым ботом</li>
+              <li>• Используйте кнопку обновления статуса для проверки соединения</li>
             </ul>
           </div>
         </CardContent>

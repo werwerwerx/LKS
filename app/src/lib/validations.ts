@@ -31,7 +31,7 @@ export const ModelSchema = z.object({
   age: z.number().min(16, "Возраст должен быть от 16 лет").max(99, "Возраст должен быть до 99 лет"),
   description: z.string().max(500, "Описание слишком длинное").optional(),
   price: z.number().min(0, "Цена не может быть отрицательной").optional(),
-  photos: z.array(z.string().url("Неверный формат URL фото")).default([]),
+  photos: z.array(z.string().min(1, "URL фото не может быть пустым")).default([]),
   is_active: z.boolean().default(true),
 })
 

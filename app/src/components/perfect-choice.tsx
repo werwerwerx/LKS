@@ -1,5 +1,4 @@
 import { Award } from "lucide-react"
-import { CircularShadow } from "@/components/ui/circular-shadow"
 import type { SiteSettings } from "@/lib/get-site-settings"
 
 interface PerfectChoiceProps {
@@ -10,7 +9,6 @@ export default function PerfectChoice({ settings }: PerfectChoiceProps) {
 
   return (
     <section className="py-20 lg:py-24 relative overflow-hidden">
-      <CircularShadow position="left" size="md" />
       
       <div className="container mx-auto px-6 max-w-7xl relative" style={{ zIndex: 2 }}>
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">

@@ -60,6 +60,7 @@ export default function WhatIsModeling() {
             activeModels.map((model) => (
               <Suspense key={model.id} fallback={<ModelCardSkeleton />}>
                 <ModelCard
+                  modelId={model.id}
                   imgSrc={model.photos}
                   name={model.name}
                   age={model.age}
