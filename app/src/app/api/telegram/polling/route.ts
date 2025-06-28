@@ -295,30 +295,46 @@ export const POST = async (req: NextRequest) => {
   try {
     const { action } = await req.json()
 
-    if (action === "stop") {
-      pollingManager.stopPolling()
-      await pollingManager.updateTelegramSettings({ is_active: false })
-      return NextResponse.json({ message: "Система уведомлений остановлена" })
-    }
+      if (action === "stop") {
+    pollingManager.stopPolling()
+    await pollingManager.updateTelegramSettings({ is_active: false })
+    return NextResponse.json({ message: "Система уведомлений остановлена" })
+  }
 
-    if (action === "reset") {
-      await pollingManager.updateTelegramSettings({ 
-        subscriber_chat_id: null,
-        is_active: false 
-      })
-      return NextResponse.json({ message: "Настройки сброшены" })
-    }
+  if (action === "restart") {
+    console.log("🔄 Restarting Telegram polling due to token change...")
+    pollingManager.stopPolling()
+    
+    setTimeout(async () => {
+      try {
+        await pollingManager.startPolling()
+        console.log("✅ Telegram polling restarted successfully")
+      } catch (error) {
+        console.error("❌ Failed to restart polling:", error)
+      }
+    }, 1000)
+    
+    return NextResponse.json({ message: "Polling перезапускается с новым токеном" })
+  }
 
-    if (action === "status") {
-      const settings = await pollingManager.getTelegramSettings()
-      return NextResponse.json({ 
-        subscribedChatId: settings?.subscriber_chat_id,
-        isPolling: pollingManager.isActive(),
-        isActive: settings?.is_active || false,
-        hasToken: !!settings?.bot_token,
-        instanceId: INSTANCE_ID
-      })
-    }
+  if (action === "reset") {
+    await pollingManager.updateTelegramSettings({ 
+      subscriber_chat_id: null,
+      is_active: false 
+    })
+    return NextResponse.json({ message: "Настройки сброшены" })
+  }
+
+  if (action === "status") {
+    const settings = await pollingManager.getTelegramSettings()
+    return NextResponse.json({ 
+      subscribedChatId: settings?.subscriber_chat_id,
+      isPolling: pollingManager.isActive(),
+      isActive: settings?.is_active || false,
+      hasToken: !!settings?.bot_token,
+      instanceId: INSTANCE_ID
+    })
+  }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {

@@ -70,21 +70,27 @@ export const POST = async (req: NextRequest) => {
           subscriber_chat_id: null
         })
         .where(eq(telegram_settings.id, existingSettings[0].id))
-      
-      return NextResponse.json({ 
-        message: "Settings updated successfully" 
-      })
     } else {
       await db.insert(telegram_settings).values({
         bot_token: trimmedToken,
         is_active: false,
         subscriber_chat_id: null
       })
-      
-      return NextResponse.json({ 
-        message: "Settings created successfully" 
-      })
     }
+
+    try {
+      await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/telegram/polling`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "restart" }),
+      }).catch(() => {})
+    } catch (error) {
+      console.log("Failed to restart polling, but token was saved")
+    }
+    
+    return NextResponse.json({ 
+      message: "Settings updated successfully. Telegram bot will restart automatically." 
+    })
   } catch (error) {
     console.error("Error saving Telegram settings:", error instanceof Error ? error.message : 'Unknown error')
     return NextResponse.json(

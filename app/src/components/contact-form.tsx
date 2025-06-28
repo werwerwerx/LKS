@@ -7,8 +7,13 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { MessageCircle } from "lucide-react"
 import Image from "next/image"
 import { onSubmitForm } from "@/shared/on-submit-form"
+import type { SiteSettings } from "@/lib/get-site-settings"
 
-export default function ContactForm() {
+interface ContactFormProps {
+  settings: SiteSettings
+}
+
+export default function ContactForm({ settings }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -84,21 +89,21 @@ export default function ContactForm() {
             </div>
 
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 lg:mb-8 leading-tight text-start">
-              ОСТАЛИСЬ ВОПРОСЫ?
+              {settings.contact_form_title}
             </h2>
             <p className="text-lg lg:text-xl text-muted-foreground mb-10 lg:mb-12 font-normal text-start">
-              Наши менеджеры с <span className="text-primary font-medium">удовольствием</span> ответят на них
+              {settings.contact_form_subtitle}
             </p>
             
             <form className="space-y-6 w-full" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="name" className="text-muted-foreground text-start block mb-2">Ваше имя</label>
+                <label htmlFor="name" className="text-muted-foreground text-start block mb-2">{settings.form_name_placeholder}</label>
                 <Input
                   id="name"
                   name="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="Ваше имя"
+                  placeholder={settings.form_name_placeholder}
                   className={`h-12 text-base bg-transparent border-muted text-foreground placeholder:text-muted-foreground rounded-lg ${
                     errors.name ? "border-red-500" : ""
                   }`}
@@ -114,7 +119,7 @@ export default function ContactForm() {
                   name="phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  placeholder="+7 (999) 123-45-67"
+                  placeholder={settings.form_phone_placeholder}
                   className={`h-12 text-base bg-transparent border-muted text-foreground placeholder:text-muted-foreground rounded-lg ${
                     errors.phone ? "border-red-500" : ""
                   }`}
@@ -132,13 +137,13 @@ export default function ContactForm() {
                   required 
                 />
                 <label htmlFor="privacy" className="text-primary text-base cursor-pointer text-start">
-                  Соглашаюсь с политикой обработки данных
+                  {settings.form_privacy_text}
                 </label>
               </div>
               {errors.privacy && <p className="text-red-500 text-sm">{errors.privacy}</p>}
 
               <Button className="w-full h-12" type="submit">
-                ОТПРАВИТЬ
+                {settings.form_submit_button}
               </Button>
             </form>
           </div>

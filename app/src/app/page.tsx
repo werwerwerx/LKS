@@ -10,13 +10,15 @@ import ServicesDescription from "@/components/services-description"
 import ContactForm from "@/components/contact-form"
 import Footer from "@/components/footer"
 import Image from "next/image"
+import { getSiteSettings } from "@/lib/get-site-settings"
 
-export default function Home() {
+export default async function Home() {
+  const settings = await getSiteSettings()
   return (
     <main>
-      <Header />
+      
       <div className="bg-background">
-        <HeroSectionContainer />
+        <HeroSectionContainer settings={settings} />
       </div>
       <div className="bg-muted/20">
         <WhatIsModeling />
@@ -26,7 +28,6 @@ export default function Home() {
       </div>
       <div className="relative">
 
-      {/* Background Image */}
       <div className="absolute top-5/12 md:top-4/12 lg:top-1/4 -translate-y-1/2 right-0  opacity-50 lg:opacity-100 lg:right-[15vw] w-[292px] h-[488px] md:w-[392px] md:h-[588px] pointer-events-none ">
         <Image 
           src="/imgs/goddamn-girl.png" 
@@ -39,7 +40,7 @@ export default function Home() {
       </div>
 
       <div className="bg-muted/20 mb-60 md:mb-40 lg:mb-20">
-        <PerfectChoice />
+        <PerfectChoice settings={settings} />
       </div>
       <div className="bg-background">
         <OurServices />
@@ -52,13 +53,10 @@ export default function Home() {
       <div className="bg-background">
         <EliteChoice />
       </div>
-      {/* <div className="bg-muted/20">
-        <ServicesDescription />
-      </div> */}
       <div className="bg-background">
-        <ContactForm />
+        <ContactForm settings={settings} />
       </div>
-      <Footer />
+      <Footer settings={settings} />
     </main>
   )
 }

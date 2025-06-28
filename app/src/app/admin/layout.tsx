@@ -31,12 +31,14 @@ export default function AdminLayout({
               </Card>
             </Link>
             
-            <Card className="opacity-50 cursor-not-allowed">
-              <CardContent className="p-4 flex items-center gap-3">
-                <Settings className="h-5 w-5 text-gray-400" />
-                <span className="font-medium">Настройки</span>
-              </CardContent>
-            </Card>
+            <Link href="/admin/site-settings">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <Settings className="h-5 w-5 text-orange-600" />
+                  <span className="font-medium">Настройки сайта</span>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
         

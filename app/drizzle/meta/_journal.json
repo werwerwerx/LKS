@@ -29,6 +29,13 @@
       "when": 1751041254862,
       "tag": "0003_luxuriant_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1751048472315,
+      "tag": "0004_first_zombie",
+      "breakpoints": true
     }
   ]
 }

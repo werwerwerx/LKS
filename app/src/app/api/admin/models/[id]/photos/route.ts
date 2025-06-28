@@ -5,15 +5,12 @@ import { eq, and } from "drizzle-orm"
 import { unlink } from 'fs/promises'
 import path from 'path'
 
-interface RouteParams {
-  params: {
-    id: string
-  }
-}
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
+
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const modelId = parseInt(params.id)
+    const resolvedParams = await params
+    const modelId = parseInt(resolvedParams.id)
     if (isNaN(modelId)) {
       return NextResponse.json(
         { error: "Неверный ID модели" },
@@ -50,9 +47,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const modelId = parseInt(params.id)
+    const resolvedParams = await params
+    const modelId = parseInt(resolvedParams.id)
     if (isNaN(modelId)) {
       return NextResponse.json(
         { error: "Неверный ID модели" },

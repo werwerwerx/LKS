@@ -40,9 +40,10 @@ export const GET = async (req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export const PUT = async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const PUT = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const modelId = parseInt(params.id)
+    const resolvedParams = await params
+    const modelId = parseInt(resolvedParams.id)
     
     if (isNaN(modelId)) {
       return NextResponse.json(
@@ -116,9 +117,10 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export const DELETE = async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
-    const modelId = parseInt(params.id)
+    const resolvedParams = await params
+    const modelId = parseInt(resolvedParams.id)
     
     if (isNaN(modelId)) {
       return NextResponse.json(

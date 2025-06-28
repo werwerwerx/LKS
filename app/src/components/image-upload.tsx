@@ -35,6 +35,10 @@ export default function ImageUpload({
     setCurrentPhotos(existingPhotos)
   }, [existingPhotos])
 
+  useEffect(() => {
+    onPhotosChange?.(currentPhotos)
+  }, [currentPhotos, onPhotosChange])
+
   const validateFile = (file: File): string | null => {
     if (!acceptedTypes.includes(file.type)) {
       return `Тип файла ${file.type} не поддерживается`
@@ -77,26 +81,18 @@ export default function ImageUpload({
       const result = await response.json()
       const newPhotoUrls = result.files.map((file: any) => file.url)
       
-      setCurrentPhotos(prev => {
-        const updated = [...prev, ...newPhotoUrls]
-        onPhotosChange?.(updated)
-        return updated
-      })
+      setCurrentPhotos(prev => [...prev, ...newPhotoUrls])
     } catch (error) {
       console.error('Upload error:', error)
       setError(error instanceof Error ? error.message : 'Ошибка загрузки файлов')
     } finally {
       setIsUploading(false)
     }
-  }, [currentPhotos, maxFiles, onPhotosChange])
+  }, [currentPhotos, maxFiles])
 
   const removePhoto = useCallback((photoUrl: string) => {
-    setCurrentPhotos(prev => {
-      const updated = prev.filter(url => url !== photoUrl)
-      onPhotosChange?.(updated)
-      return updated
-    })
-  }, [onPhotosChange])
+    setCurrentPhotos(prev => prev.filter(url => url !== photoUrl))
+  }, [])
 
   const processFiles = useCallback(
     (files: FileList | File[]) => {
