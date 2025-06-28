@@ -21,7 +21,7 @@ export default function HeroSection({ settings, className, ...props }: HeroSecti
         </div>
         
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-          N.N - зона вашего комфорта.
+          L.K.S. - зона вашего комфорта.
         </h1>
 
         <p className="text-lg sm:text-xl lg:text-2xl text-muted-foreground font-normal mb-8">

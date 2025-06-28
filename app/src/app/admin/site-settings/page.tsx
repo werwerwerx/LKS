@@ -207,7 +207,7 @@ export default function SiteSettingsPage() {
                 id="inn"
                 value={settings.inn}
                 onChange={(e) => updateSetting("inn", e.target.value)}
-                placeholder="ООО N.N. ИНН 205414867О КПП 658202759 ОГРН 725666120З132"
+                placeholder="ООО L.K.S. ИНН 205414867О КПП 658202759 ОГРН 725666120З132"
                 rows={2}
                 disabled={isAnyLoading}
               />
