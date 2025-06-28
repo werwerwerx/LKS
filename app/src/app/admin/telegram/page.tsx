@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { z } from "zod"
+import { TelegramBotTokenSchema } from "@/lib/validations"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,12 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, AlertCircle, Settings, User, Loader2, Save, RotateCcw, RefreshCw } from "lucide-react"
 import { apiGet, apiPost } from "@/lib/api-client"
 
-const BotTokenSchema = z.object({
-  bot_token: z
-    .string()
-    .min(1, "Токен не может быть пустым")
-    .regex(/^\d{8,10}:[a-zA-Z0-9_-]{35}$/, "Неверный формат токена Telegram бота")
-})
+
 
 const TelegramStatusSchema = z.object({
   subscribedChatId: z.string().nullable(),
@@ -68,7 +64,7 @@ export default function TelegramAdminPage() {
 
   const validateToken = (token: string): boolean => {
     try {
-      BotTokenSchema.parse({ bot_token: token })
+      TelegramBotTokenSchema.parse({ bot_token: token })
       setValidationErrors([])
       return true
     } catch (error) {

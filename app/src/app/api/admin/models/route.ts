@@ -78,22 +78,29 @@ export const POST = async (req: NextRequest) => {
         is_active: body.is_active ?? true
       })
 
-      const [newModel] = await db.insert(models).values({
-        name: validatedData.name.trim(),
-        age: validatedData.age,
-        description: validatedData.description?.trim() || null,
-        price: validatedData.price ? validatedData.price.toString() : null,
-        is_active: validatedData.is_active
-      }).returning()
+      let newModel
 
-      if (validatedData.photos.length > 0) {
-        await db.insert(model_photos).values(
-          validatedData.photos.map((photoUrl: string) => ({
-            model_id: newModel.id,
-            photo_url: photoUrl
-          }))
-        )
-      }
+      // Используем транзакцию для атомарности операций
+      await db.transaction(async (tx) => {
+        const [createdModel] = await tx.insert(models).values({
+          name: validatedData.name.trim(),
+          age: validatedData.age,
+          description: validatedData.description?.trim() || null,
+          price: validatedData.price ? validatedData.price.toString() : null,
+          is_active: validatedData.is_active
+        }).returning()
+
+        newModel = createdModel
+
+        if (validatedData.photos.length > 0) {
+          await tx.insert(model_photos).values(
+            validatedData.photos.map((photoUrl: string) => ({
+              model_id: createdModel.id,
+              photo_url: photoUrl
+            }))
+          )
+        }
+      })
 
       return NextResponse.json({
         message: "Модель успешно создана",
@@ -135,11 +142,25 @@ export const DELETE = async (req: NextRequest) => {
       )
     }
 
-    await db.delete(model_photos).where(inArray(model_photos.model_id, ids))
-    await db.delete(models).where(inArray(models.id, ids))
+    // Проверяем, что все ID являются числами
+    const validIds = ids.filter(id => typeof id === 'number' && !isNaN(id))
+    if (validIds.length !== ids.length) {
+      return NextResponse.json(
+        { error: "Все ID должны быть числами" },
+        { status: 400 }
+      )
+    }
+
+    // Используем транзакцию для атомарности операций
+    await db.transaction(async (tx) => {
+      // Сначала удаляем все фотографии
+      await tx.delete(model_photos).where(inArray(model_photos.model_id, validIds))
+      // Затем удаляем модели
+      await tx.delete(models).where(inArray(models.id, validIds))
+    })
 
     return NextResponse.json({
-      message: `Удалено моделей: ${ids.length}`
+      message: `Удалено моделей: ${validIds.length}`
     })
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {

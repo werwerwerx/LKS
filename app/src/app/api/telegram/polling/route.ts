@@ -11,7 +11,7 @@ interface PollingState {
 }
 
 const POLLING_LOCK_KEY = 'telegram_polling_lock'
-const POLLING_TIMEOUT = 30000 // 30 секунд
+const POLLING_TIMEOUT = 120000 // 120 секунд
 const INSTANCE_ID = `polling_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
 class PollingManager {
@@ -305,48 +305,48 @@ export const POST = async (req: NextRequest) => {
       await verifyAdminToken(req)
     }
 
-      if (action === "stop") {
-    pollingManager.stopPolling()
-    await pollingManager.updateTelegramSettings({ is_active: false })
-    return NextResponse.json({ message: "Система уведомлений остановлена" })
-  }
-
-  if (action === "restart") {
-    console.log("🔄 Restarting Telegram polling due to token change...")
-    pollingManager.stopPolling()
-    
-    while (pollingManager.isActive()) {
-      await new Promise(resolve => setTimeout(resolve, 100))
+    if (action === "stop") {
+      pollingManager.stopPolling()
+      await pollingManager.updateTelegramSettings({ is_active: false })
+      return NextResponse.json({ message: "Система уведомлений остановлена" })
     }
-    
-    try {
-      await pollingManager.startPolling()
-      console.log("✅ Telegram polling restarted successfully")
-      return NextResponse.json({ message: "Polling успешно перезапущен с новым токеном" })
-    } catch (error) {
-      console.error("❌ Failed to restart polling:", error)
-      return NextResponse.json({ error: "Ошибка перезапуска polling" }, { status: 500 })
+
+    if (action === "restart") {
+      console.log("🔄 Restarting Telegram polling due to token change...")
+      pollingManager.stopPolling()
+      
+      while (pollingManager.isActive()) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+      
+      try {
+        await pollingManager.startPolling()
+        console.log("✅ Telegram polling restarted successfully")
+        return NextResponse.json({ message: "Polling успешно перезапущен с новым токеном" })
+      } catch (error) {
+        console.error("❌ Failed to restart polling:", error)
+        return NextResponse.json({ error: "Ошибка перезапуска polling" }, { status: 500 })
+      }
     }
-  }
 
-  if (action === "reset") {
-    await pollingManager.updateTelegramSettings({ 
-      subscriber_chat_id: null,
-      is_active: false 
-    })
-    return NextResponse.json({ message: "Настройки сброшены" })
-  }
+    if (action === "reset") {
+      await pollingManager.updateTelegramSettings({ 
+        subscriber_chat_id: null,
+        is_active: false 
+      })
+      return NextResponse.json({ message: "Настройки сброшены" })
+    }
 
-  if (action === "status") {
-    const settings = await pollingManager.getTelegramSettings()
-    return NextResponse.json({ 
-      subscribedChatId: settings?.subscriber_chat_id,
-      isPolling: pollingManager.isActive(),
-      isActive: settings?.is_active || false,
-      hasToken: !!settings?.bot_token,
-      instanceId: INSTANCE_ID
-    })
-  }
+    if (action === "status") {
+      const settings = await pollingManager.getTelegramSettings()
+      return NextResponse.json({ 
+        subscribedChatId: settings?.subscriber_chat_id,
+        isPolling: pollingManager.isActive(),
+        isActive: settings?.is_active || false,
+        hasToken: !!settings?.bot_token,
+        instanceId: INSTANCE_ID
+      })
+    }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
   } catch (error) {
