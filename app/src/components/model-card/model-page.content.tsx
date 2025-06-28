@@ -126,16 +126,37 @@ export function ModelPageContent({ model, settings }: ModelPageContentProps) {
 
               <Card className="border-primary/20 shadow-xl bg-gradient-to-br from-primary/5 to-background">
                 <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Phone className="h-5 w-5 text-primary" />
-                    Забронировать встречу
-                  </CardTitle>
+                  <CardTitle className="text-xl">Выберите способ связи</CardTitle>
                   <CardDescription className="text-base">
-                    Заполните форму и мы свяжемся с вами в течение 15 минут
+                    Свяжитесь с моделью удобным способом
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <SimpleContactForm />
+                <CardContent className="space-y-6">
+                  <button 
+                    onClick={() => window.open(`https://t.me/${settings.telegram.replace('@', '')}`, '_blank')}
+                    className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 hover:border-blue-500/40 transition-all duration-200 hover:scale-[1.02]"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <MessageCircle className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-lg">Telegram</p>
+                      <p className="text-sm text-muted-foreground">Напишите ей в мессенджер</p>
+                    </div>
+                  </button>
+
+                  <button 
+                    onClick={() => window.location.href = `tel:${settings.phone}`}
+                    className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 hover:border-green-500/40 transition-all duration-200 hover:scale-[1.02]"
+                  >
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                      <Phone className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-lg">Позвонить</p>
+                      <p className="text-sm text-muted-foreground">Обсудите встречу по телефону</p>
+                    </div>
+                  </button>
                 </CardContent>
               </Card>
             </div>
@@ -172,40 +193,19 @@ export function ModelPageContent({ model, settings }: ModelPageContentProps) {
               </div>
             </div>
 
-            {/* Right Column - Contacts */}
+            {/* Right Column - Contact Form */}
             <Card className="bg-background/95 backdrop-blur-sm border-primary-foreground/20">
               <CardHeader>
-                <CardTitle className="text-xl">Или напишите нам сами</CardTitle>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Phone className="h-5 w-5 text-primary" />
+                  Забронировать встречу
+                </CardTitle>
                 <CardDescription>
-                  Свяжитесь с нами любым удобным способом
+                  Заполните форму и мы свяжемся с вами в течение 15 минут
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Phone className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Телефон</p>
-                    <a href={`tel:${settings.phone}`} className="text-primary hover:underline">
-                      {settings.phone}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <MessageCircle className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Telegram</p>
-                    <a href={`https://t.me/${settings.telegram.replace('@', '')}`} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-                      {settings.telegram}
-                    </a>
-                  </div>
-                </div>
-
-
+              <CardContent>
+                <SimpleContactForm />
               </CardContent>
             </Card>
           </div>

@@ -35,7 +35,7 @@ export default function Footer({ settings }: FooterProps) {
           {/* Копирайт */}
           <div className="text-center lg:text-right">
             <p className="text-xs sm:text-sm text-muted-foreground">
-              © {new Date().getFullYear()} L.K.S. Все права защищены
+              © {new Date().getFullYear()} К.Л.С. Все права защищены
             </p>
           </div>
           

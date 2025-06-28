@@ -67,7 +67,7 @@ export default function ContactForm({ settings }: ContactFormProps) {
   }
 
   return (
-    <section className="w-full my-20">
+    <section className="w-full">
       <div className="flex justify-center w-full container mx-auto max-w-7xl px-6">
         <div className="flex justify-end">
           <div className="w-full">

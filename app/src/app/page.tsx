@@ -16,11 +16,11 @@ export const revalidate = 3600 // Ревалидация каждый час
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()
-  
+
   return {
     title: settings.home_title,
     description: settings.hero_description,
-    keywords: "модельное агентство, премиум модели, профессиональные модели, L.K.S.",
+    keywords: "модельное агентство, премиум модели, профессиональные модели, К.Л.С.",
     openGraph: {
       title: settings.home_title,
       description: settings.hero_description,
@@ -33,19 +33,18 @@ export default async function Home() {
   const settings = await getSiteSettings()
   return (
     <main>
-      
+
       <div className="bg-background">
         <HeroSectionContainer settings={settings} />
       </div>
-      <div className="bg-muted/20">
+      <div className="bg-muted/20 py-8 md:py-16 lg:py-20">
         <WhatIsModeling />
       </div>
-      <div className="bg-background">
+      <div className="bg-background py-8 md:py-16 lg:py-20">
         <HowToOrder />
       </div>
-      <div className="relative">
 
-      <div className="absolute top-5/12 md:top-4/12 lg:top-1/4 -translate-y-1/2 right-0  opacity-50 lg:opacity-100 lg:right-[15vw] w-[292px] h-[488px] md:w-[392px] md:h-[588px] pointer-events-none ">
+        {/* <div className="absolute top-5/12 md:top-4/12 lg:top-1/4 -translate-y-1/2 right-0  opacity-50 lg:opacity-100 lg:right-[15vw] w-[292px] h-[488px] md:w-[392px] md:h-[588px] pointer-events-none ">
         <Image 
           src="/imgs/goddamn-girl.png" 
           alt="Our Services" 
@@ -54,25 +53,24 @@ export default async function Home() {
           loading="lazy"
           className="object-cover object-center lg:z-30"
         />
-      </div>
+      </div> */}
 
-      <div className="bg-muted/20 mb-60 md:mb-40 lg:mb-20">
-        <PerfectChoice settings={settings} />
-      </div>
-      <div className="bg-background">
-        <OurServices />
-      </div>
+        <div className="bg-muted/20 py-8 md:py-16 lg:py-20">
+          <PerfectChoice settings={settings} />
+        </div>
+                 <div id="services" className="bg-background py-8 md:py-16 lg:py-20">
+            <OurServices />
+          </div>
 
-      </div>
-      <div className="bg-muted/20">
+      <div className="bg-muted/20 py-8 md:py-16 lg:py-20">
         <Advantages />
       </div>
-      <div className="bg-background">
+      <div className="bg-background py-8 md:py-16 lg:py-20">
         <EliteChoice />
       </div>
-      <div className="bg-background">
-        <ContactForm settings={settings} />
-      </div>
+             <div id="contacts" className="bg-muted/20 py-8 md:py-16 lg:py-20">
+          <ContactForm settings={settings} />
+        </div>
       <Footer settings={settings} />
     </main>
   )

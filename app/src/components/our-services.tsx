@@ -35,7 +35,7 @@ export default function OurServices() {
   ]
 
   return (
-    <section className="py-20 lg:py-24 relative overflow-hidden">
+    <section className="relative overflow-hidden">
 
 
       <div className="container mx-auto px-6 max-w-7xl relative z-10">

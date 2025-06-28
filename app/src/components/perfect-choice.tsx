@@ -8,7 +8,7 @@ interface PerfectChoiceProps {
 export default function PerfectChoice({ settings }: PerfectChoiceProps) {
 
   return (
-    <section className="py-20 lg:py-24 relative overflow-hidden">
+    <section className="relative overflow-hidden">
       
       <div className="container mx-auto px-6 max-w-7xl relative" style={{ zIndex: 2 }}>
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">

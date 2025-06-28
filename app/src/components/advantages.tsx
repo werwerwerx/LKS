@@ -25,7 +25,7 @@ export default function Advantages() {
   ]
 
   return (
-    <section className="py-20 lg:py-24">
+    <section>
       <div className="container mx-auto px-6 max-w-7xl">
         <div className="flex items-center justify-center gap-4 mb-6">
           <div className="bg-primary rounded-lg p-3 lg:p-4">

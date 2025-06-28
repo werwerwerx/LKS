@@ -25,7 +25,7 @@ export default function WhatIsModeling() {
     ?.slice(0, 3) || []
 
   return (
-    <section className="py-20 lg:py-24">
+    <section>
       <div className="container mx-auto px-6 max-w-7xl">
         <div className="max-w-4xl mx-auto text-center mb-16 lg:mb-20">
           <div className="flex items-center justify-center gap-4 mb-6">

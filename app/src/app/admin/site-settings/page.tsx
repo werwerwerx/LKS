@@ -207,7 +207,7 @@ export default function SiteSettingsPage() {
                 id="inn"
                 value={settings.inn}
                 onChange={(e) => updateSetting("inn", e.target.value)}
-                placeholder="ООО L.K.S. ИНН 205414867О КПП 658202759 ОГРН 725666120З132"
+                placeholder="ООО К.Л.С. ИНН 205414867О КПП 658202759 ОГРН 725666120З132"
                 rows={2}
                 disabled={isAnyLoading}
               />
@@ -226,7 +226,7 @@ export default function SiteSettingsPage() {
                 id="home_title"
                 value={settings.home_title}
                 onChange={(e) => updateSetting("home_title", e.target.value)}
-                placeholder="L.K.S. - Модельное агентство премиум класса в Москве"
+                placeholder="К.Л.С. - Модельное агентство премиум класса в Москве"
                 disabled={isAnyLoading}
               />
             </div>
@@ -236,7 +236,7 @@ export default function SiteSettingsPage() {
                 id="models_title"
                 value={settings.models_title}
                 onChange={(e) => updateSetting("models_title", e.target.value)}
-                placeholder="Каталог моделей L.K.S. - Профессиональные модели Москвы"
+                placeholder="Каталог моделей К.Л.С. - Профессиональные модели Москвы"
                 disabled={isAnyLoading}
               />
             </div>
@@ -246,7 +246,7 @@ export default function SiteSettingsPage() {
                 id="model_title_template"
                 value={settings.model_title_template}
                 onChange={(e) => updateSetting("model_title_template", e.target.value)}
-                placeholder="{name}, {age} лет - Профессиональная модель L.K.S."
+                placeholder="{name}, {age} лет - Профессиональная модель К.Л.С."
                 disabled={isAnyLoading}
               />
               <p className="text-xs text-muted-foreground mt-1">

@@ -37,7 +37,7 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
               </div>
               <div className="hidden sm:block">
                 <div className="font-bold text-xl lg:text-2xl text-foreground">
-                  L.K.S.
+                  К.Л.С.
                 </div>
                 <div className="text-xs lg:text-sm text-muted-foreground font-medium">
                   Элитное модельное агентство
@@ -48,6 +48,8 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
             <nav className="hidden lg:flex items-center space-x-8">
               <NavLink href="/" icon={Home}>Главная</NavLink>
               <NavLink href="/models" icon={Users}>Каталог</NavLink>
+              <NavLink href="/#services" icon={Briefcase}>Услуги</NavLink>
+              <NavLink href="/#contacts" icon={MessageSquare}>Контакты</NavLink>
             </nav>
 
             <div className="flex items-center space-x-3 lg:space-x-4">
@@ -98,10 +100,10 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
                 <MobileNavLink href="/models" icon={Users} onClick={() => setMobileMenuOpen(false)}>
                   Каталог
                 </MobileNavLink>
-                <MobileNavLink href="#services" icon={Briefcase} onClick={() => setMobileMenuOpen(false)}>
+                <MobileNavLink href="/#services" icon={Briefcase} onClick={() => setMobileMenuOpen(false)}>
                   Услуги
                 </MobileNavLink>
-                <MobileNavLink href="#contacts" icon={MessageSquare} onClick={() => setMobileMenuOpen(false)}>
+                <MobileNavLink href="/#contacts" icon={MessageSquare} onClick={() => setMobileMenuOpen(false)}>
                   Контакты
                 </MobileNavLink>
               </nav>
@@ -146,11 +148,18 @@ function NavLink({ href, children, icon: Icon }: {
   icon?: React.ComponentType<{ className?: string }>;
 }) {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (href.startsWith('#')) {
+    if (href.startsWith('/#')) {
       e.preventDefault()
-      const element = document.querySelector(href)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' })
+      const anchor = href.substring(1) // убираем "/" оставляем "#anchor"
+      if (window.location.pathname !== '/') {
+        // Если не на главной, переходим на главную и затем скроллим
+        window.location.href = href
+      } else {
+        // Если уже на главной, просто скроллим
+        const element = document.querySelector(anchor)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }
       }
     }
   }
@@ -175,11 +184,18 @@ function MobileNavLink({ href, children, icon: Icon, onClick }: {
   onClick: () => void;
 }) {
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (href.startsWith('#')) {
+    if (href.startsWith('/#')) {
       e.preventDefault()
-      const element = document.querySelector(href)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' })
+      const anchor = href.substring(1) // убираем "/" оставляем "#anchor"
+      if (window.location.pathname !== '/') {
+        // Если не на главной, переходим на главную и затем скроллим
+        window.location.href = href
+      } else {
+        // Если уже на главной, просто скроллим
+        const element = document.querySelector(anchor)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }
       }
     }
     onClick()

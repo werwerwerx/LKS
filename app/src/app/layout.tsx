@@ -30,7 +30,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} bg-background text-foreground antialiase dark pt-20`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} bg-background text-foreground antialiase dark pt-12`}>
         <Header settings={settings} />
         <QueryProvider>
           {children}
