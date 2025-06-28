@@ -4,7 +4,7 @@ import Image from "next/image"
 import { lazy, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Camera } from "lucide-react"
-import { useModels } from "@/hooks/use-models"
+import { usePublicModels } from "@/hooks/use-public-models"
 import Link from "next/link"
 
 const ModelCard = lazy(() => import("@/components/model-card/model-card").then(module => ({ default: module.ModelCard })))
@@ -18,10 +18,10 @@ function ModelCardSkeleton() {
 }
 
 export default function WhatIsModeling() {
-  const { data: modelsData, isLoading } = useModels()
+  const { data: modelsData, isLoading } = usePublicModels()
   
   const activeModels = modelsData?.models
-    ?.filter(model => model.is_active && model.photos.length > 0)
+    ?.filter(model => model.photos.length > 0)
     ?.slice(0, 3) || []
 
   return (

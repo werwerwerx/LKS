@@ -59,7 +59,7 @@ export function useUpdateModel() {
 
   return useMutation({
     mutationFn: async (data: UpdateModelData) => {
-      const response = await apiPut(`/api/admin/models/${data.id}`, data, { requireAuth: false })
+      const response = await apiPut(`/api/admin/models/${data.id}`, data, { requireAuth: true })
       return response.json()
     },
     onSuccess: () => {
