@@ -81,6 +81,7 @@ export default function TelegramAdminPage() {
       const timeoutId = setTimeout(() => controller.abort(), 10000)
       
       const response = await apiPost("/api/telegram/polling", { action: "status" }, {
+        requireAuth: true,
         signal: controller.signal
       })
       
@@ -107,6 +108,7 @@ export default function TelegramAdminPage() {
       const timeoutId = setTimeout(() => controller.abort(), 10000)
       
       const response = await apiGet("/api/admin/telegram-settings", {
+        requireAuth: true,
         signal: controller.signal
       })
       
@@ -153,6 +155,7 @@ export default function TelegramAdminPage() {
       const timeoutId = setTimeout(() => controller.abort(), 10000)
       
       const response = await apiPost("/api/admin/telegram-settings", { bot_token: trimmedToken }, {
+        requireAuth: true,
         signal: controller.signal
       })
       
@@ -183,6 +186,7 @@ export default function TelegramAdminPage() {
       const timeoutId = setTimeout(() => controller.abort(), 10000)
       
       const response = await apiPost("/api/telegram/polling", { action: "reset" }, {
+        requireAuth: true,
         signal: controller.signal
       })
       

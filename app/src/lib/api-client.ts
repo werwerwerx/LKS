@@ -12,7 +12,7 @@ interface ApiRequestOptions extends RequestInit {
 }
 
 export async function apiRequest(url: string, options: ApiRequestOptions = {}) {
-  const { requireAuth = true, headers = {}, ...restOptions } = options
+  const { requireAuth = false, headers = {}, ...restOptions } = options
   
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export async function apiRequest(url: string, options: ApiRequestOptions = {}) {
   })
 
   if (!response.ok) {
-    if (response.status === 401) {
+    if (response.status === 401 && requireAuth) {
       window.location.href = '/login'
       throw new Error('Unauthorized')
     }

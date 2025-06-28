@@ -24,7 +24,7 @@ export default function SiteSettingsPage() {
   const fetchSettings = async () => {
     try {
       setLoading(true)
-      const response = await apiGet("/api/admin/site-settings")
+      const response = await apiGet("/api/admin/site-settings", { requireAuth: true })
       const data = await response.json()
       setSettings(data.settings)
     } catch (error) {
@@ -40,7 +40,7 @@ export default function SiteSettingsPage() {
 
     setSaving(true)
     try {
-      const response = await apiPut("/api/admin/site-settings", settings)
+      const response = await apiPut("/api/admin/site-settings", settings, { requireAuth: true })
       const data = await response.json()
       setSettings(data.settings)
       toast.success("Настройки успешно сохранены")
@@ -55,7 +55,7 @@ export default function SiteSettingsPage() {
   const handleReset = async () => {
     setResetting(true)
     try {
-      const response = await apiPost("/api/admin/site-settings")
+      const response = await apiPost("/api/admin/site-settings", undefined, { requireAuth: true })
       const data = await response.json()
       setSettings(data.settings)
       toast.success("Настройки сброшены к значениям по умолчанию")

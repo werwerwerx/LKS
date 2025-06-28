@@ -34,7 +34,7 @@ export function useModels() {
   return useQuery({
     queryKey: MODELS_QUERY_KEY,
     queryFn: async (): Promise<{ models: Model[] }> => {
-      const response = await apiGet('/api/admin/models')
+      const response = await apiGet('/api/admin/models', { requireAuth: true })
       return response.json()
     },
   })
@@ -45,7 +45,7 @@ export function useCreateModel() {
 
   return useMutation({
     mutationFn: async (data: CreateModelData) => {
-      const response = await apiPost('/api/admin/models', data)
+      const response = await apiPost('/api/admin/models', data, { requireAuth: true })
       return response.json()
     },
     onSuccess: () => {
@@ -59,7 +59,7 @@ export function useUpdateModel() {
 
   return useMutation({
     mutationFn: async (data: UpdateModelData) => {
-      const response = await apiPut(`/api/admin/models/${data.id}`, data)
+      const response = await apiPut(`/api/admin/models/${data.id}`, data, { requireAuth: false })
       return response.json()
     },
     onSuccess: () => {
@@ -73,7 +73,7 @@ export function useDeleteModels() {
 
   return useMutation({
     mutationFn: async (ids: number[]) => {
-      const response = await apiDelete('/api/admin/models', { ids })
+      const response = await apiDelete('/api/admin/models', { ids }, { requireAuth: true })
       return response.json()
     },
     onMutate: async (ids) => {
@@ -106,7 +106,7 @@ export function useAddModelPhotos() {
 
   return useMutation({
     mutationFn: async ({ modelId, photoUrls }: { modelId: number; photoUrls: string[] }) => {
-      const response = await apiPost(`/api/admin/models/${modelId}/photos`, { photoUrls })
+      const response = await apiPost(`/api/admin/models/${modelId}/photos`, { photoUrls }, { requireAuth: true })
       return response.json()
     },
     onSuccess: () => {
@@ -120,7 +120,7 @@ export function useDeleteModelPhoto() {
 
   return useMutation({
     mutationFn: async ({ modelId, photoUrl }: { modelId: number; photoUrl: string }) => {
-      const response = await apiDelete(`/api/admin/models/${modelId}/photos?url=${encodeURIComponent(photoUrl)}`)
+      const response = await apiDelete(`/api/admin/models/${modelId}/photos?url=${encodeURIComponent(photoUrl)}`, undefined, { requireAuth: true })
       return response.json()
     },
     onSuccess: () => {
