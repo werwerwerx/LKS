@@ -39,7 +39,7 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen dark">
-      <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-6">
+      <div className="container mx-auto px-3 sm:px-6 pt-[70px] sm:pt-[60px] pb-3 sm:pb-6">
         <div className="mb-4 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Панель администратора К.Л.С.</h1>

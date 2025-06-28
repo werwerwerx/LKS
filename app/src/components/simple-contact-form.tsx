@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
 import { ContactFormSchema } from "@/lib/validations"
 import { z } from "zod"
 import { onSubmitForm } from "@/shared/on-submit-form"
@@ -23,23 +22,19 @@ export default function SimpleContactForm({
 }: SimpleContactFormProps) {
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
-    privacy: false
+    phone: ""
   })
   const [errors, setErrors] = useState({
     name: "",
-    phone: "",
-    privacy: ""
+    phone: ""
   })
 
-  const validateField = (field: keyof typeof formData, value: string | boolean): string => {
+  const validateField = (field: keyof typeof formData, value: string): string => {
     try {
       if (field === "name" && typeof value === "string") {
         ContactFormSchema.shape.name.parse(value)
       } else if (field === "phone" && typeof value === "string") {
         ContactFormSchema.shape.phone.parse(value)
-      } else if (field === "privacy") {
-        ContactFormSchema.shape.privacy.parse(value)
       }
       return ""
     } catch (error) {
@@ -50,7 +45,7 @@ export default function SimpleContactForm({
     }
   }
 
-  const handleInputChange = (field: keyof typeof formData, value: string | boolean) => {
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     
     const error = validateField(field, value)
@@ -60,15 +55,13 @@ export default function SimpleContactForm({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const nameError = validateField("name", formData.name)
     const phoneError = validateField("phone", formData.phone)
-    const privacyError = validateField("privacy", formData.privacy)
 
     setErrors({
       name: nameError,
-      phone: phoneError,
-      privacy: privacyError
+      phone: phoneError
     })
 
-    if (nameError || phoneError || privacyError) {
+    if (nameError || phoneError) {
       e.preventDefault()
       return
     }
@@ -102,17 +95,11 @@ export default function SimpleContactForm({
         {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
       </div>
 
-      <div className="flex items-start space-x-3 pt-3">
-        <Checkbox
-          checked={formData.privacy}
-          onCheckedChange={(checked) => handleInputChange("privacy", !!checked)}
-          className={`${errors.privacy ? "border-red-500" : ""}`}
-        />
-        <label className="text-sm cursor-pointer text-start">
+      <div className="pt-3">
+        <p className="text-sm text-muted-foreground text-center">
           {privacyText}
-        </label>
+        </p>
       </div>
-      {errors.privacy && <p className="text-red-500 text-sm mt-1">{errors.privacy}</p>}
 
       <Button className="w-full" type="submit">
         {buttonText}

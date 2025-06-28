@@ -18,8 +18,7 @@ interface ContactFormProps {
 export default function ContactForm({ settings }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
-    privacy: true
+    phone: ""
   })
   const [errors, setErrors] = useState({
     name: "",

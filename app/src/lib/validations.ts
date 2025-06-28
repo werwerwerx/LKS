@@ -14,9 +14,7 @@ export const ContactFormSchema = z.object({
     .refine((phone) => /^[\+]?[1-9][\d]{9,14}$/.test(phone), {
       message: "Введите корректный номер телефона",
     }),
-  privacy: z.boolean().refine((val) => val === true, {
-    message: "Необходимо согласие на обработку данных",
-  }),
+  privacy: z.boolean().default(true).optional(),
 })
 
 export const TelegramBotTokenSchema = z.object({

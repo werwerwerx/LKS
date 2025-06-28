@@ -381,12 +381,6 @@ export default function TelegramAdminPage() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Система:</span>
-                <span className={`text-sm ${status?.isPolling ? 'text-green-600' : 'text-orange-600'}`}>
-                  {status?.isPolling ? "🟢 Работает" : "🟡 Ожидание"}
-                </span>
-              </div>
 
               <Button 
                 onClick={resetSubscriber} 
