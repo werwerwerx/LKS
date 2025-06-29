@@ -1,6 +1,5 @@
 import { db } from "@/lib/db"
 import { site_settings } from "@/lib/db/schema"
-import { cache } from "react"
 
 export type SiteSettings = {
   id: number
@@ -34,7 +33,7 @@ const DEFAULT_SETTINGS = {
   updated_at: new Date()
 }
 
-export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
+export const getSiteSettings = async (): Promise<SiteSettings> => {
   try {
     const settings = await db.select().from(site_settings).limit(1)
     
@@ -47,4 +46,4 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     console.error("Error fetching site settings:", error)
     return DEFAULT_SETTINGS
   }
-}) 
+}

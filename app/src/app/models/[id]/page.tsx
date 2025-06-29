@@ -9,7 +9,8 @@ interface PageProps {
   }>
 }
 
-export const revalidate = 1800 // Ревалидация каждые 30 минут
+export const revalidate = 120 // Ревалидация каждые 2 минуты
+export const dynamicParams = true // Позволяет создавать новые страницы on-demand
 
 export async function generateStaticParams() {
   const modelIds = await getModelIds()

@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm"
 import { verifyAdminToken } from "@/lib/auth-middleware"
 import { ModelSchema } from "@/lib/validations"
 import { z } from "zod"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export const GET = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
   try {
@@ -104,6 +105,16 @@ export const PUT = async (req: NextRequest, { params }: { params: Promise<{ id: 
         )
       }
 
+      // Инвалидируем кеш с помощью тегов
+      revalidateTag('models')
+      revalidateTag('public-models')
+      revalidateTag('model-ids')
+      
+      // Также инвалидируем страницы для надежности
+      revalidatePath('/')
+      revalidatePath('/models')
+      revalidatePath(`/models/${modelId}`)
+
       return NextResponse.json({
         message: "Модель успешно обновлена"
       })
@@ -154,6 +165,16 @@ export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ i
 
     await db.delete(model_photos).where(eq(model_photos.model_id, modelId))
     await db.delete(models).where(eq(models.id, modelId))
+
+    // Инвалидируем кеш с помощью тегов
+    revalidateTag('models')
+    revalidateTag('public-models')
+    revalidateTag('model-ids')
+    
+    // Также инвалидируем страницы для надежности
+    revalidatePath('/')
+    revalidatePath('/models')
+    revalidatePath(`/models/${modelId}`)
 
     return NextResponse.json({
       message: "Модель успешно удалена"

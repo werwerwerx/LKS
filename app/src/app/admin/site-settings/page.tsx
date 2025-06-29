@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import type { SiteSettings } from "@/lib/get-site-settings"
 import { apiGet, apiPut, apiPost } from "@/lib/api-client"
 import { SiteSettingsSchema } from "@/lib/validations"
+import { CacheRefreshButton } from "@/components/cache-refresh-button"
 
 export default function SiteSettingsPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null)
@@ -56,8 +57,10 @@ export default function SiteSettingsPage() {
       console.error("Error saving settings:", error)
       
       // Обработка ошибок валидации
+      // @ts-ignore
       if (error?.issues) {
         const validationErrors: Record<string, string> = {}
+        // @ts-ignore
         error.issues.forEach((issue: any) => {
           if (issue.path?.[0]) {
             validationErrors[issue.path[0]] = issue.message
@@ -145,6 +148,7 @@ export default function SiteSettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold">Настройки сайта</h1>
         <div className="flex flex-col sm:flex-row gap-2">
+          <CacheRefreshButton variant="outline" className="w-full sm:w-auto" />
           <Button
             variant="outline"
             onClick={handleReset}

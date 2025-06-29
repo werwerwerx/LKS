@@ -7,7 +7,7 @@ import { getPublicModels } from "@/lib/get-models"
 import { getSiteSettings } from "@/lib/get-site-settings"
 import { ModelsPageClient } from "@/components/models-page-client"
 
-export const revalidate = 1800 // Ревалидация каждые 30 минут
+export const revalidate = 120 // Ревалидация каждые 2 минуты вместо 30 минут
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()

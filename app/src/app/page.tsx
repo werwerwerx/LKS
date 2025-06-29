@@ -12,7 +12,7 @@ import Footer from "@/components/footer"
 import Image from "next/image"
 import { getSiteSettings } from "@/lib/get-site-settings"
 
-export const revalidate = 3600 // Ревалидация каждый час
+export const revalidate = 300 // Ревалидация каждые 5 минут вместо часа
 
 export async function generateMetadata() {
   const settings = await getSiteSettings()

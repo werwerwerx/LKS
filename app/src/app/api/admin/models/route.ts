@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { models, model_photos } from "@/lib/db/schema"
+import { models, model_photos, Model } from "@/lib/db/schema"
 import { eq, inArray } from "drizzle-orm"
 import { verifyAdminToken } from "@/lib/auth-middleware"
 import { ModelSchema } from "@/lib/validations"
 import { z } from "zod"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -78,11 +79,9 @@ export const POST = async (req: NextRequest) => {
         is_active: body.is_active ?? true
       })
 
-      let newModel
-
       // Используем транзакцию для атомарности операций
-      await db.transaction(async (tx) => {
-        const [createdModel] = await tx.insert(models).values({
+
+        const [createdModel] = await db.insert(models).values({
           name: validatedData.name.trim(),
           age: validatedData.age,
           description: validatedData.description?.trim() || null,
@@ -90,21 +89,29 @@ export const POST = async (req: NextRequest) => {
           is_active: validatedData.is_active
         }).returning()
 
-        newModel = createdModel
 
         if (validatedData.photos.length > 0) {
-          await tx.insert(model_photos).values(
+          await db.insert(model_photos).values(
             validatedData.photos.map((photoUrl: string) => ({
               model_id: createdModel.id,
               photo_url: photoUrl
             }))
           )
         }
-      })
+
+      // Инвалидируем кеш с помощью тегов
+      revalidateTag('models')
+      revalidateTag('public-models')
+      revalidateTag('model-ids')
+      
+      // Также инвалидируем страницы для надежности
+      revalidatePath('/')
+      revalidatePath('/models')
+      revalidatePath(`/models/${createdModel.id}`)
 
       return NextResponse.json({
         message: "Модель успешно создана",
-        model: newModel
+        model: createdModel
       })
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
@@ -157,6 +164,18 @@ export const DELETE = async (req: NextRequest) => {
       await tx.delete(model_photos).where(inArray(model_photos.model_id, validIds))
       // Затем удаляем модели
       await tx.delete(models).where(inArray(models.id, validIds))
+    })
+
+    // Инвалидируем кеш с помощью тегов
+    revalidateTag('models')
+    revalidateTag('public-models')
+    revalidateTag('model-ids')
+    
+    // Также инвалидируем страницы для надежности
+    revalidatePath('/')
+    revalidatePath('/models')
+    validIds.forEach(id => {
+      revalidatePath(`/models/${id}`)
     })
 
     return NextResponse.json({
