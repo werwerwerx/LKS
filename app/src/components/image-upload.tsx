@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { apiUpload } from "@/lib/api-client"
+import imageCompression from 'browser-image-compression'
 
 interface ImageUploadProps {
   onPhotosChange?: (photos: string[]) => void
@@ -60,6 +61,30 @@ export default function ImageUpload({
       return `Файл "${file.name}" имеет неподдерживаемый тип (${file.type})`
     }
     return null
+  }
+
+  const compressImages = async (files: File[], maxSizeMB: number, maxWidthOrHeight: number) => {
+    const compressedFiles: File[] = []
+    for (const file of files) {
+      let options: any = {
+        maxSizeMB,
+        maxWidthOrHeight,
+        useWebWorker: true
+      }
+      if (file.type === 'image/png') {
+        options.fileType = 'image/jpeg'
+        options.initialQuality = 0.8
+      }
+      if (file.type === 'image/jpeg' || file.type === 'image/webp') {
+        options.initialQuality = 0.8
+      }
+      const compressed = await imageCompression(file, options)
+      if (compressed.size > maxSizeMB * 1024 * 1024) {
+        throw new Error(`Файл "${file.name}" после сжатия всё равно больше ${maxSizeMB} МБ`)
+      }
+      compressedFiles.push(compressed)
+    }
+    return compressedFiles
   }
 
   const uploadFiles = useCallback(async (files: File[]) => {
@@ -138,11 +163,28 @@ export default function ImageUpload({
   }, [])
 
   const processFiles = useCallback(
-    (files: FileList | File[]) => {
+    async (files: FileList | File[]) => {
       const fileArray = Array.from(files)
-      uploadFiles(fileArray)
+      let compressedFiles = fileArray
+      try {
+        compressedFiles = await compressImages(
+          fileArray,
+          maxSize !== Number.POSITIVE_INFINITY ? Math.min(maxSize, 0.95) : 0.95,
+          3000
+        )
+      } catch (e) {
+        addError(e instanceof Error ? e.message : 'Ошибка сжатия изображений')
+        return
+      }
+      for (const file of compressedFiles) {
+        if (file.size > (maxSize !== Number.POSITIVE_INFINITY ? Math.min(maxSize, 0.95) : 0.95) * 1024 * 1024) {
+          addError(`Файл "${file.name}" слишком большой даже после сжатия`)
+          return
+        }
+      }
+      uploadFiles(compressedFiles)
     },
-    [uploadFiles],
+    [uploadFiles, maxSize],
   )
 
   const handleDragOver = useCallback((e: React.DragEvent) => {

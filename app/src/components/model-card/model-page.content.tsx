@@ -1,16 +1,21 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Phone, Calendar, DollarSign, ImageIcon, MapPin, Star, MessageCircle } from "lucide-react"
+import { ArrowLeft, Phone, Calendar, ImageIcon, MapPin, Star, MessageCircle, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import SimpleContactForm from "@/components/simple-contact-form"
 import OtherModelsSection from "@/components/other-models-section"
 import type { Model } from "@/lib/get-models"
 import type { SiteSettings } from "@/lib/get-site-settings"
+import { Swiper, SwiperSlide } from "swiper/react"
+import { Pagination } from "swiper/modules"
+import "swiper/css"
+import "swiper/css/pagination"
+import type { Swiper as SwiperType } from "swiper"
 
 interface ModelPageContentProps {
   model: Model
@@ -19,6 +24,7 @@ interface ModelPageContentProps {
 
 export function ModelPageContent({ model, settings }: ModelPageContentProps) {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
+  const swiperRef = useRef<SwiperType | null>(null)
 
   return (
     <div className="min-h-screen bg-background">
@@ -37,14 +43,53 @@ export function ModelPageContent({ model, settings }: ModelPageContentProps) {
             <div className="space-y-6">
               <div className="aspect-[4/5] relative overflow-hidden rounded-2xl bg-muted shadow-2xl">
                 {model.photos.length > 0 ? (
-                  <Image
-                    src={model.photos[selectedPhotoIndex]}
-                    alt={`${model.name} - фото ${selectedPhotoIndex + 1}`}
-                    fill
-                    className="object-cover transition-all duration-300"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    priority
-                  />
+                  <>
+                    <Swiper
+                      modules={[Pagination]}
+                      slidesPerView={1}
+                      pagination={{ clickable: true }}
+                      onSlideChange={swiper => setSelectedPhotoIndex(swiper.activeIndex)}
+                      onSwiper={swiper => { swiperRef.current = swiper }}
+                      loop={true}
+                      initialSlide={selectedPhotoIndex}
+                      className="w-full h-full"
+                    >
+                      {model.photos.map((src, index) => (
+                        <SwiperSlide key={index}>
+                          <Image
+                            src={src}
+                            alt={`${model.name} - фото ${index + 1}`}
+                            fill
+                            className="object-contain transition-all duration-300"
+                            sizes="(max-width: 1024px) 100vw, 50vw"
+                            priority={index === 0}
+                          />
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
+                    {model.photos.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background/90 rounded-full p-2 shadow-md border border-border transition disabled:opacity-40"
+                          onClick={() => swiperRef.current && swiperRef.current.slideTo((selectedPhotoIndex - 1 + model.photos.length) % model.photos.length)}
+                          disabled={model.photos.length <= 1}
+                          tabIndex={0}
+                        >
+                          <ArrowLeft className="h-6 w-6" />
+                        </button>
+                        <button
+                          type="button"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background/90 rounded-full p-2 shadow-md border border-border transition disabled:opacity-40"
+                          onClick={() => swiperRef.current && swiperRef.current.slideTo((selectedPhotoIndex + 1) % model.photos.length)}
+                          disabled={model.photos.length <= 1}
+                          tabIndex={0}
+                        >
+                          <ArrowRight className="h-6 w-6" />
+                        </button>
+                      </>
+                    )}
+                  </>
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <ImageIcon className="h-16 w-16 text-muted-foreground" />
@@ -60,7 +105,7 @@ export function ModelPageContent({ model, settings }: ModelPageContentProps) {
                   {model.photos.map((photo, index) => (
                     <button
                       key={index}
-                      onClick={() => setSelectedPhotoIndex(index)}
+                      onClick={() => swiperRef.current && swiperRef.current.slideTo(index)}
                       className={cn(
                         "aspect-square relative overflow-hidden rounded-lg border-2 transition-all duration-200 hover:scale-105",
                         selectedPhotoIndex === index 
@@ -96,17 +141,16 @@ export function ModelPageContent({ model, settings }: ModelPageContentProps) {
                 <div className="flex flex-wrap items-center gap-3">
                   <Badge variant="secondary" className="px-4 py-2 text-base">
                     <Calendar className="h-4 w-4 mr-2" />
-                    {model.age} лет
+                    Возраст: {model.age} 
                   </Badge>
                   {model.price && (
                     <Badge variant="outline" className="px-4 py-2 text-base border-primary/20">
-                      <DollarSign className="h-4 w-4 mr-2" />
                       от {model.price} ₽
                     </Badge>
                   )}
                   <Badge variant="outline" className="px-4 py-2 text-base">
                     <MapPin className="h-4 w-4 mr-2" />
-                    Москва
+                    {settings.city}
                   </Badge>
                 </div>
               </div>

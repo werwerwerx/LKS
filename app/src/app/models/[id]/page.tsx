@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: PageProps) {
   
   return {
     title,
-    description: model.description || `Профессиональная модель ${model.name}, ${model.age} лет. Модельное агентство К.Л.С. в Москве.`,
+    description: model.description || `Профессиональная модель ${model.name}, Возраст: ${model.age}. Модельное агентство К.Л.С. в Москве.`,
   }
 }
 

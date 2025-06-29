@@ -36,7 +36,15 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const extension = path.extname(file.name).toLowerCase()
+      let extension = path.extname(file.name)
+      if (!extension) {
+        // Если расширения нет, пробуем определить по mime-type
+        if (file.type === 'image/jpeg') extension = '.jpg'
+        else if (file.type === 'image/png') extension = '.png'
+        else if (file.type === 'image/webp') extension = '.webp'
+        else extension = ''
+      }
+      extension = extension.toLowerCase()
       if (!ALLOWED_EXTENSIONS.includes(extension)) {
         return NextResponse.json(
           { error: `Недопустимое расширение файла: ${extension}` },
@@ -51,6 +59,7 @@ export async function POST(request: NextRequest) {
       hash.update(buffer)
       const fileHash = hash.digest('hex').substring(0, 16)
 
+      // Сохраняем файл с расширением в нижнем регистре
       const fileName = `${fileHash}${extension}`
       const filePath = path.join(uploadDir, fileName)
 

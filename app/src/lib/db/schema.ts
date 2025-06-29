@@ -56,6 +56,7 @@ export const site_settings = pgTable('site_settings', {
   email: varchar('email', { length: 100 }),
   address: text('address').notNull(),
   inn: text('inn').notNull(),
+  city: text('city').notNull().default('Москва'),
   hero_description: text('hero_description').notNull(),
   home_title: text('home_title').notNull(),
   models_title: text('models_title').notNull(),
@@ -69,4 +70,5 @@ export type NewModel = typeof models.$inferInsert
 export type ContactRequest = typeof contact_requests.$inferSelect
 export type NewContactRequest = typeof contact_requests.$inferInsert
 export type TelegramSettings = typeof telegram_settings.$inferSelect
-export type NewTelegramSettings = typeof telegram_settings.$inferInsert 
+export type NewTelegramSettings = typeof telegram_settings.$inferInsert
+export type SiteSettings = typeof site_settings.$inferSelect 

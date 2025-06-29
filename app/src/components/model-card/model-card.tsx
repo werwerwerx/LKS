@@ -41,7 +41,7 @@ export function ModelCard({
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set())
   const router = useRouter()
 
-  const images = imgSrc?.length > 0 ? imgSrc : []
+  const images = imgSrc?.filter(src => src && typeof src === 'string') || []
   const hasValidImages = images.length > 0
 
   const handleSwiperInit = useCallback((swiper: SwiperType) => {
@@ -52,7 +52,6 @@ export function ModelCard({
     setIsLoading(true)
     try {
       router.push(href)
-      // Сбрасываем спиннер через небольшую задержку для UX
       setTimeout(() => setIsLoading(false), 1000)
     } catch (error) {
       setIsLoading(false)
@@ -60,8 +59,42 @@ export function ModelCard({
   }, [router])
 
   const handleImageError = useCallback((index: number) => {
+    console.warn(`Image loading error at index ${index}`)
     setImageErrors(prev => new Set(prev).add(index))
   }, [])
+
+  const renderImage = (src: string, index: number, alt: string) => {
+    if (imageErrors.has(index)) {
+      return <PlaceholderImage />
+    }
+
+    const imageUrl = src.startsWith('http') ? src : src.startsWith('/') ? src : `/${src}`
+
+    return (
+      <Image
+        src={imageUrl}
+        alt={alt}
+        fill
+        className="object-cover transition-transform duration-500 group-hover:scale-105"
+        priority={index === 0}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        quality={75}
+        loading={index === 0 ? "eager" : "lazy"}
+        onError={() => handleImageError(index)}
+        onLoadingComplete={(result) => {
+          if (result.naturalWidth === 0) {
+            handleImageError(index)
+          } else if (imageErrors.has(index)) {
+            setImageErrors(prev => {
+              const newSet = new Set(prev)
+              newSet.delete(index)
+              return newSet
+            })
+          }
+        }}
+      />
+    )
+  }
 
   const defaultButton = modelId ? (
     <Button
@@ -78,51 +111,15 @@ export function ModelCard({
         </>
       ) : (
         <>
-          Увидеть больше
+          Подробнее
           <ArrowRight className="w-4 h-4 ml-2" />
         </>
       )}
     </Button>
-  ) : (
-    <Button
-      variant="default"
-      size="lg"
-      className="rounded-full px-5 py-2 text-sm font-medium bg-white/90 text-black hover:bg-white transition-colors duration-300 backdrop-blur-sm shadow-lg"
-    >
-      Увидеть больше
-      <ArrowRight className="w-4 h-4 ml-2" />
-    </Button>
-  )
+  ) : null
 
   if (!name || age === undefined) {
     return null
-  }
-
-  const renderImage = (src: string, index: number, alt: string) => {
-    if (imageErrors.has(index)) {
-      return <PlaceholderImage />
-    }
-
-    return (
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        className="object-cover transition-transform duration-500 group-hover:scale-105"
-        priority={index === 0}
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        onError={() => handleImageError(index)}
-        onLoadingComplete={() => {
-          if (imageErrors.has(index)) {
-            setImageErrors(prev => {
-              const newSet = new Set(prev)
-              newSet.delete(index)
-              return newSet
-            })
-          }
-        }}
-      />
-    )
   }
 
   return (
@@ -147,7 +144,7 @@ export function ModelCard({
           className="w-full h-full"
         >
           {images.map((src, index) => (
-            <SwiperSlide key={index}>
+            <SwiperSlide key={`${src}-${index}`}>
               <div className="relative w-full h-full">
                 {renderImage(src, index, `${name} - фото ${index + 1}`)}
               </div>
@@ -196,11 +193,6 @@ export function ModelCard({
           .swiper-pagination-bullet-active {
             background: rgba(255, 255, 255, 0.9) !important;
             transform: scale(1.2) !important;
-          }
-          
-          .swiper-pagination-bullet:hover {
-            background: rgba(255, 255, 255, 0.7) !important;
-            transform: scale(1.1) !important;
           }
         `}</style>
       )}

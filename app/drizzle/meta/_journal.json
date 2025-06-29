@@ -8,6 +8,20 @@
       "when": 1751203636519,
       "tag": "0000_square_invisible_woman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1751228230939,
+      "tag": "0001_chief_xavin",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1751228284115,
+      "tag": "0002_wild_dreaming_celestial",
+      "breakpoints": true
     }
   ]
 }

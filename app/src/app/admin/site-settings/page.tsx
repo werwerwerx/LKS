@@ -10,12 +10,14 @@ import { Loader2, Save, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import type { SiteSettings } from "@/lib/get-site-settings"
 import { apiGet, apiPut, apiPost } from "@/lib/api-client"
+import { SiteSettingsSchema } from "@/lib/validations"
 
 export default function SiteSettingsPage() {
   const [settings, setSettings] = useState<SiteSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetchSettings()
@@ -27,6 +29,7 @@ export default function SiteSettingsPage() {
       const response = await apiGet("/api/admin/site-settings", { requireAuth: true })
       const data = await response.json()
       setSettings(data.settings)
+      setErrors({})
     } catch (error) {
       console.error("Error fetching settings:", error)
       toast.error("Ошибка загрузки настроек")
@@ -39,14 +42,32 @@ export default function SiteSettingsPage() {
     if (!settings) return
 
     setSaving(true)
+    setErrors({})
+    
     try {
-      const response = await apiPut("/api/admin/site-settings", settings, { requireAuth: true })
+      // Валидация на клиенте
+      const validatedSettings = SiteSettingsSchema.parse(settings)
+      
+      const response = await apiPut("/api/admin/site-settings", validatedSettings, { requireAuth: true })
       const data = await response.json()
       setSettings(data.settings)
       toast.success("Настройки успешно сохранены")
     } catch (error) {
       console.error("Error saving settings:", error)
-      toast.error("Ошибка сохранения настроек")
+      
+      // Обработка ошибок валидации
+      if (error?.issues) {
+        const validationErrors: Record<string, string> = {}
+        error.issues.forEach((issue: any) => {
+          if (issue.path?.[0]) {
+            validationErrors[issue.path[0]] = issue.message
+          }
+        })
+        setErrors(validationErrors)
+        toast.error("Проверьте правильность заполнения полей")
+      } else {
+        toast.error("Ошибка сохранения настроек")
+      }
     } finally {
       setSaving(false)
     }
@@ -58,6 +79,7 @@ export default function SiteSettingsPage() {
       const response = await apiPost("/api/admin/site-settings", undefined, { requireAuth: true })
       const data = await response.json()
       setSettings(data.settings)
+      setErrors({})
       toast.success("Настройки сброшены к значениям по умолчанию")
     } catch (error) {
       console.error("Error resetting settings:", error)
@@ -70,6 +92,10 @@ export default function SiteSettingsPage() {
   const updateSetting = (key: keyof SiteSettings, value: string) => {
     if (!settings) return
     setSettings({ ...settings, [key]: value })
+    // Очищаем ошибку поля при изменении
+    if (errors[key]) {
+      setErrors({ ...errors, [key]: "" })
+    }
   }
 
   const isAnyLoading = loading || saving || resetting
@@ -158,7 +184,11 @@ export default function SiteSettingsPage() {
                   onChange={(e) => updateSetting("phone", e.target.value)}
                   placeholder="+7 996 679 44 78"
                   disabled={isAnyLoading}
+                  className={errors.phone ? "border-destructive" : ""}
                 />
+                {errors.phone && (
+                  <p className="text-sm text-destructive mt-1">{errors.phone}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="telegram">Telegram</Label>
@@ -168,8 +198,26 @@ export default function SiteSettingsPage() {
                   onChange={(e) => updateSetting("telegram", e.target.value)}
                   placeholder="@lks_models"
                   disabled={isAnyLoading}
+                  className={errors.telegram ? "border-destructive" : ""}
                 />
+                {errors.telegram && (
+                  <p className="text-sm text-destructive mt-1">{errors.telegram}</p>
+                )}
               </div>
+            </div>
+            <div>
+              <Label htmlFor="city">Город</Label>
+              <Input
+                id="city"
+                value={settings.city}
+                onChange={(e) => updateSetting("city", e.target.value)}
+                placeholder="Москва"
+                disabled={isAnyLoading}
+                className={errors.city ? "border-destructive" : ""}
+              />
+              {errors.city && (
+                <p className="text-sm text-destructive mt-1">{errors.city}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="email">Email (необязательно)</Label>
@@ -180,7 +228,11 @@ export default function SiteSettingsPage() {
                 onChange={(e) => updateSetting("email", e.target.value)}
                 placeholder="info@lks-models.ru"
                 disabled={isAnyLoading}
+                className={errors.email ? "border-destructive" : ""}
               />
+              {errors.email && (
+                <p className="text-sm text-destructive mt-1">{errors.email}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -199,7 +251,11 @@ export default function SiteSettingsPage() {
                 placeholder="Офис в Москве: Пресненская наб., 8 стр 1, Москва, Россия"
                 rows={2}
                 disabled={isAnyLoading}
+                className={errors.address ? "border-destructive" : ""}
               />
+              {errors.address && (
+                <p className="text-sm text-destructive mt-1">{errors.address}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="inn">ИНН и реквизиты</Label>
@@ -210,7 +266,11 @@ export default function SiteSettingsPage() {
                 placeholder="ООО К.Л.С. ИНН 205414867О КПП 658202759 ОГРН 725666120З132"
                 rows={2}
                 disabled={isAnyLoading}
+                className={errors.inn ? "border-destructive" : ""}
               />
+              {errors.inn && (
+                <p className="text-sm text-destructive mt-1">{errors.inn}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -228,7 +288,11 @@ export default function SiteSettingsPage() {
                 onChange={(e) => updateSetting("home_title", e.target.value)}
                 placeholder="К.Л.С. - Модельное агентство премиум класса в Москве"
                 disabled={isAnyLoading}
+                className={errors.home_title ? "border-destructive" : ""}
               />
+              {errors.home_title && (
+                <p className="text-sm text-destructive mt-1">{errors.home_title}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="models_title">Заголовок каталога моделей</Label>
@@ -238,7 +302,11 @@ export default function SiteSettingsPage() {
                 onChange={(e) => updateSetting("models_title", e.target.value)}
                 placeholder="Каталог моделей К.Л.С. - Профессиональные модели Москвы"
                 disabled={isAnyLoading}
+                className={errors.models_title ? "border-destructive" : ""}
               />
+              {errors.models_title && (
+                <p className="text-sm text-destructive mt-1">{errors.models_title}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="model_title_template">Шаблон заголовка страницы модели</Label>
@@ -246,9 +314,13 @@ export default function SiteSettingsPage() {
                 id="model_title_template"
                 value={settings.model_title_template}
                 onChange={(e) => updateSetting("model_title_template", e.target.value)}
-                placeholder="{name}, {age} лет - Профессиональная модель К.Л.С."
+                placeholder="{name}, Возраст: {age} - Профессиональная модель К.Л.С."
                 disabled={isAnyLoading}
+                className={errors.model_title_template ? "border-destructive" : ""}
               />
+              {errors.model_title_template && (
+                <p className="text-sm text-destructive mt-1">{errors.model_title_template}</p>
+              )}
               <p className="text-xs text-muted-foreground mt-1">
                 Используйте {"{name}"} и {"{age}"} для подстановки имени и возраста модели
               </p>
@@ -270,7 +342,11 @@ export default function SiteSettingsPage() {
                 placeholder="Наше модельное агентство предлагает премиальные услуги профессиональных моделей..."
                 rows={4}
                 disabled={isAnyLoading}
+                className={errors.hero_description ? "border-destructive" : ""}
               />
+              {errors.hero_description && (
+                <p className="text-sm text-destructive mt-1">{errors.hero_description}</p>
+              )}
               <p className="text-xs text-muted-foreground mt-1">
                 {settings.hero_description.length} символов
               </p>

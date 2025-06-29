@@ -9,6 +9,7 @@ export type SiteSettings = {
   email: string | null
   address: string
   inn: string
+  city: string
   hero_description: string
   home_title: string
   models_title: string
@@ -28,6 +29,7 @@ const DEFAULT_SETTINGS = {
   home_title: "К.Л.С. - Модельное агентство премиум класса в Москве",
   models_title: "Каталог моделей К.Л.С. - Профессиональные модели Москвы",
   model_title_template: "{name}, {age} лет - Профессиональная модель К.Л.С.",
+  city: "Москва",
   created_at: new Date(),
   updated_at: new Date()
 }

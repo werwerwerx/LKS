@@ -11,8 +11,8 @@ export const ContactFormSchema = z.object({
     .string()
     .min(1, "Номер телефона обязателен")
     .transform((phone) => phone.replace(/[\s\-\(\)]/g, ''))
-    .refine((phone) => /^[\+]?[1-9][\d]{9,14}$/.test(phone), {
-      message: "Введите корректный номер телефона",
+    .refine((phone) => /^(\+7|8)?[1-9]\d{9}$/.test(phone), {
+      message: "Введите корректный номер телефона в формате +79279614133 или 89279614133",
     }),
   privacy: z.boolean().default(true).optional(),
 })
@@ -33,12 +33,21 @@ export const ModelSchema = z.object({
   is_active: z.boolean().default(true),
 })
 
+const phoneSchema = z
+  .string()
+  .min(1, "Номер телефона обязателен")
+  .transform((phone) => phone.replace(/[\s\-\(\)]/g, ''))
+  .refine((phone) => /^(\+7|8)?[1-9]\d{9}$/.test(phone), {
+    message: "Введите корректный номер телефона в формате +79279614133 или 89279614133",
+  })
+
 export const SiteSettingsSchema = z.object({
-  phone: z.string().min(1, "Телефон обязателен"),
+  phone: phoneSchema,
   telegram: z.string().min(1, "Telegram обязателен"),
-  email: z.string().email("Неверный формат email").optional().or(z.literal("")),
+  email: z.string().email("Неверный формат email").nullable().or(z.literal("")),
   address: z.string().min(1, "Адрес обязателен"),
   inn: z.string().min(1, "ИНН и реквизиты обязательны"),
+  city: z.string().min(1, "Город обязателен"),
   hero_description: z.string().min(1, "Описание на главной обязательно"),
   home_title: z.string().min(1, "Заголовок главной страницы обязателен"),
   models_title: z.string().min(1, "Заголовок каталога моделей обязателен"),
