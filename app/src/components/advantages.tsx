@@ -34,7 +34,7 @@ export default function Advantages() {
         </div>
 
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-16 lg:mb-20 leading-tight max-w-4xl mx-auto">
-          ПРЕИМУЩЕСТВА ВЫБОРА TOUCH-MODELS
+          НАШИ ПРЕИМУЩЕСТВА
         </h2>
 
         <div className="grid md:grid-cols-3 gap-8 lg:gap-10 max-w-6xl mx-auto">

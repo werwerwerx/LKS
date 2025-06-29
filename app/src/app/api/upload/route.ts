@@ -44,13 +44,6 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        return NextResponse.json(
-          { error: `Файл ${file.name} превышает максимальный размер 5MB` },
-          { status: 400 }
-        )
-      }
-
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 

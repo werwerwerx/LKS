@@ -27,8 +27,8 @@ interface UploadProgress {
 export default function ImageUpload({
   onPhotosChange,
   existingPhotos = [],
-  maxFiles = 10,
-  maxSize = 5,
+  maxFiles = Number.POSITIVE_INFINITY,
+  maxSize = Number.POSITIVE_INFINITY,
   acceptedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"],
   className,
 }: ImageUploadProps) {
@@ -59,18 +59,10 @@ export default function ImageUpload({
     if (!acceptedTypes.includes(file.type)) {
       return `Файл "${file.name}" имеет неподдерживаемый тип (${file.type})`
     }
-    if (file.size > maxSize * 1024 * 1024) {
-      return `Файл "${file.name}" превышает максимальный размер ${maxSize}МБ (текущий размер: ${(file.size / 1024 / 1024).toFixed(2)}МБ)`
-    }
     return null
   }
 
   const uploadFiles = useCallback(async (files: File[]) => {
-    if (currentPhotos.length + files.length > maxFiles) {
-      addError(`Превышено максимальное количество файлов. Максимум: ${maxFiles}, пытаетесь загрузить: ${files.length}, уже загружено: ${currentPhotos.length}`)
-      return
-    }
-
     setIsUploading(true)
     clearErrors()
 
@@ -139,7 +131,7 @@ export default function ImageUpload({
     } finally {
       setIsUploading(false)
     }
-  }, [currentPhotos, maxFiles])
+  }, [])
 
   const removePhoto = useCallback((photoUrl: string) => {
     setCurrentPhotos(prev => prev.filter(url => url !== photoUrl))
@@ -192,7 +184,7 @@ export default function ImageUpload({
     fileInputRef.current?.click()
   }
 
-  const remainingSlots = maxFiles - currentPhotos.length
+  const remainingSlots = Number.POSITIVE_INFINITY
 
   return (
     <div className={cn("w-full space-y-4", className)}>
@@ -272,10 +264,7 @@ export default function ImageUpload({
               }
             </p>
             <p className="text-xs text-muted-foreground">
-              Поддерживает JPEG, PNG, WebP, GIF до {maxSize}МБ каждый
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Можно загрузить еще: {remainingSlots} из {maxFiles} файлов
+              Поддерживает JPEG, PNG, WebP, GIF
             </p>
           </div>
           {!isUploading && remainingSlots > 0 && (

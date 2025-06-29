@@ -30,7 +30,7 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
               <div className="relative">
                 <div className="h-10 w-10 lg:w-12 lg:h-12 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
                   <span className="text-primary-foreground font-bold text-lg lg:text-xl">
-                    ЛКС
+                  К.Л.С.
                   </span>
                 </div>
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-background"></div>
@@ -74,13 +74,17 @@ export default function Header({ settings, className, ...props }: HeaderProps) {
               <Button
                 size="icon"
                 variant="ghost"
-                className="lg:hidden w-12 h-12 rounded-lg hover:bg-muted"
+                className="lg:hidden w-14 h-14 rounded-lg hover:bg-muted"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? (
-                  <X className="w-6 h-6" />
+                  <X className="w-7 h-7" />
                 ) : (
-                  <Menu className="w-6 h-6" />
+                  <div className="flex flex-col justify-center items-center w-8 h-8">
+                    <div className="w-8 h-[2px] bg-foreground/80 rounded mb-2"></div>
+                    <div className="w-8 h-[2px] bg-foreground/80 rounded mb-2"></div>
+                    <div className="w-8 h-[2px] bg-foreground/80 rounded"></div>
+                  </div>
                 )}
               </Button>
             </div>
