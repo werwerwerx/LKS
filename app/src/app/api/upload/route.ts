@@ -1,31 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { createHash } from 'crypto'
-import path from 'path'
-import { existsSync } from 'fs'
 import { verifyAdminToken } from '@/lib/auth-middleware'
-import sharp from 'sharp'
-
-const ALLOWED_TYPES = [
-  'image/jpeg',
-  'image/jpg', 
-  'image/png',
-  'image/webp',
-  'image/avif',
-  'image/tiff',
-  'image/bmp'
-]
-
-const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.tiff', '.tif', '.bmp']
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB после сжатия
 
 export async function POST(request: NextRequest) {
   try {
+    // Проверка авторизации
     await verifyAdminToken(request)
     
-    const formData = await request.formData()
+    // Проверка наличия formData
+    let formData
+    try {
+      formData = await request.formData()
+    } catch (error) {
+      console.error('Error parsing form data:', error)
+      return NextResponse.json(
+        { error: 'Ошибка обработки формы' },
+        { status: 400 }
+      )
+    }
+    
     const files = formData.getAll('files') as File[]
 
+    // Валидация файлов
     if (!files || files.length === 0) {
       return NextResponse.json(
         { error: 'Файлы не найдены' },
@@ -33,176 +28,202 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'models')
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
+    // Проверка количества файлов
+    if (files.length > 10) {
+      return NextResponse.json(
+        { error: 'Слишком много файлов (максимум 10)' },
+        { status: 400 }
+      )
     }
 
     const uploadedFiles = []
+    const errors = []
 
-    for (const file of files) {
-      // Проверяем тип файла
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        return NextResponse.json(
-          { error: `Неподдерживаемый тип файла: ${file.type}. Поддерживаются: JPG, PNG, WebP, AVIF, TIFF, BMP` },
-          { status: 400 }
-        )
-      }
-
-      // Определяем расширение
-      let extension = path.extname(file.name).toLowerCase()
-      if (!extension) {
-        // Если расширения нет, определяем по mime-type
-        switch (file.type) {
-          case 'image/jpeg':
-          case 'image/jpg':
-            extension = '.jpg'
-            break
-          case 'image/png':
-            extension = '.png'
-            break
-          case 'image/webp':
-            extension = '.webp'
-            break
-          case 'image/avif':
-            extension = '.avif'
-            break
-          case 'image/tiff':
-            extension = '.tiff'
-            break
-          case 'image/bmp':
-            extension = '.bmp'
-            break
-          default:
-            extension = '.jpg'
-        }
-      }
-
-      if (!ALLOWED_EXTENSIONS.includes(extension)) {
-        return NextResponse.json(
-          { error: `Недопустимое расширение файла: ${extension}` },
-          { status: 400 }
-        )
-      }
-
-      const bytes = await file.arrayBuffer()
-      const originalBuffer = Buffer.from(bytes)
-
-      // Обрабатываем изображение с помощью Sharp
-      let processedBuffer: Buffer
-      let outputExtension = extension
-
+    // Обработка каждого файла отдельно
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      
       try {
-        let sharpInstance = sharp(originalBuffer)
+        // Валидация файла
+        if (!file || !file.name) {
+          errors.push(`Файл ${i + 1}: некорректный файл`)
+          continue
+        }
+
+        if (file.size === 0) {
+          errors.push(`Файл ${file.name}: пустой файл`)
+          continue
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+          errors.push(`Файл ${file.name}: слишком большой (максимум 10MB)`)
+          continue
+        }
+
+        // Проверка типа файла
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/bmp', 'image/tiff']
+        if (!file.type || !allowedTypes.includes(file.type)) {
+          errors.push(`Файл ${file.name}: неподдерживаемый тип (${file.type})`)
+          continue
+        }
+
+        // Подготовка данных для отправки
+        const uploadFormData = new FormData()
+        uploadFormData.append('image', file, file.name)
+        uploadFormData.append('filename', file.name)
+
+        const imageServerUrl = 'http://127.0.0.1:5000'
+        let response
         
-        // Получаем метаданные изображения
-        const metadata = await sharpInstance.metadata()
-        
-        // Ограничиваем максимальные размеры (например, 2048px по большей стороне)
-        const maxDimension = 2048
-        if (metadata.width && metadata.height) {
-          if (metadata.width > maxDimension || metadata.height > maxDimension) {
-            sharpInstance = sharpInstance.resize(maxDimension, maxDimension, {
-              fit: 'inside',
-              withoutEnlargement: true
-            })
+        try {
+          // Отправка на image-server с таймаутом
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 секунд
+
+          response = await fetch(`${imageServerUrl}/upload`, {
+            method: 'POST',
+            body: uploadFormData,
+            signal: controller.signal
+          })
+
+          clearTimeout(timeoutId)
+        } catch (fetchError) {
+          console.error(`Fetch error for file ${file.name}:`, fetchError)
+          
+          if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+            errors.push(`Файл ${file.name}: тайм-аут загрузки`)
+          } else if (fetchError instanceof Error && 'code' in fetchError && fetchError.code === 'ECONNREFUSED') {
+            errors.push(`Файл ${file.name}: сервер изображений недоступен`)
+          } else {
+            errors.push(`Файл ${file.name}: ошибка сети`)
           }
+          continue
         }
 
-        // Выбираем оптимальный формат и качество
-        if (extension === '.png') {
-          processedBuffer = await sharpInstance
-            .png({ quality: 85, compressionLevel: 9 })
-            .toBuffer()
-          outputExtension = '.png'
-        } else if (extension === '.webp') {
-          processedBuffer = await sharpInstance
-            .webp({ quality: 85, effort: 6 })
-            .toBuffer()
-          outputExtension = '.webp'
-        } else if (extension === '.avif') {
-          processedBuffer = await sharpInstance
-            .avif({ quality: 85, effort: 4 })
-            .toBuffer()
-          outputExtension = '.avif'
-        } else {
-          // Для всех остальных форматов конвертируем в JPEG
-          processedBuffer = await sharpInstance
-            .jpeg({ quality: 85, progressive: true })
-            .toBuffer()
-          outputExtension = '.jpg'
+        // Проверка статуса ответа
+        if (!response) {
+          errors.push(`Файл ${file.name}: отсутствует ответ от сервера`)
+          continue
         }
 
-        // Проверяем размер после сжатия
-        if (processedBuffer.length > MAX_FILE_SIZE) {
-          // Если файл все еще слишком большой, снижаем качество
-          if (outputExtension === '.jpg') {
-            processedBuffer = await sharp(originalBuffer)
-              .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
-              .jpeg({ quality: 70, progressive: true })
-              .toBuffer()
-          } else if (outputExtension === '.webp') {
-            processedBuffer = await sharp(originalBuffer)
-              .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
-              .webp({ quality: 70, effort: 6 })
-              .toBuffer()
-          } else if (outputExtension === '.png') {
-            processedBuffer = await sharp(originalBuffer)
-              .resize(maxDimension, maxDimension, { fit: 'inside', withoutEnlargement: true })
-              .png({ quality: 70, compressionLevel: 9 })
-              .toBuffer()
-          }
-
-          // Если все еще слишком большой, возвращаем ошибку
-          if (processedBuffer.length > MAX_FILE_SIZE) {
-            return NextResponse.json(
-              { error: `Файл ${file.name} слишком большой даже после сжатия (максимум 5MB)` },
-              { status: 400 }
-            )
-          }
+        let result
+        try {
+          result = await response.json()
+        } catch (jsonError) {
+          console.error(`JSON parse error for file ${file.name}:`, jsonError)
+          errors.push(`Файл ${file.name}: некорректный ответ сервера`)
+          continue
         }
 
-      } catch (imageError) {
-        console.error('Image processing error:', imageError)
-        return NextResponse.json(
-          { error: `Ошибка обработки изображения ${file.name}: ${imageError}` },
-          { status: 400 }
-        )
+        if (!response.ok) {
+          console.error(`Upload failed for file ${file.name}:`, result)
+          
+          // Обработка специфических ошибок от image-server
+          const errorMessage = result.error || 'Неизвестная ошибка'
+          const errorCode = result.code || 'UNKNOWN'
+          
+          switch (errorCode) {
+            case 'FILE_TOO_LARGE':
+              errors.push(`Файл ${file.name}: слишком большой`)
+              break
+            case 'INVALID_FILENAME':
+              errors.push(`Файл ${file.name}: некорректное имя`)
+              break
+            case 'INVALID_CHARACTERS':
+              errors.push(`Файл ${file.name}: недопустимые символы в имени`)
+              break
+            case 'SAVE_FAILED':
+              errors.push(`Файл ${file.name}: ошибка сохранения на сервере`)
+              break
+            case 'NO_FILE':
+              errors.push(`Файл ${file.name}: файл не получен сервером`)
+              break
+            default:
+              errors.push(`Файл ${file.name}: ${errorMessage}`)
+          }
+          continue
+        }
+
+        // Валидация успешного результата
+        if (!result.success || !result.filename || !result.url) {
+          console.error(`Invalid result for file ${file.name}:`, result)
+          errors.push(`Файл ${file.name}: некорректный ответ сервера`)
+          continue
+        }
+
+        // Добавляем в список успешных
+        uploadedFiles.push({
+          originalName: file.name,
+          filename: result.filename,
+          url: result.url,
+          size: result.size || file.size,
+          success: true
+        })
+
+        console.log(`Successfully uploaded: ${file.name} -> ${result.filename}`)
+
+      } catch (fileError) {
+        console.error(`Error processing file ${file.name}:`, fileError)
+        errors.push(`Файл ${file.name}: внутренняя ошибка обработки`)
       }
+    }
 
-      // Создаем хеш для имени файла
-      const hash = createHash('sha256')
-      hash.update(processedBuffer)
-      const fileHash = hash.digest('hex').substring(0, 16)
+    // Формирование ответа
+    const hasSuccessfulUploads = uploadedFiles.length > 0
+    const hasErrors = errors.length > 0
 
-      const fileName = `${fileHash}${outputExtension}`
-      const filePath = path.join(uploadDir, fileName)
+    if (!hasSuccessfulUploads && hasErrors) {
+      // Все файлы с ошибками
+      return NextResponse.json(
+        { 
+          error: 'Ни один файл не был загружен',
+          details: errors,
+          files: []
+        },
+        { status: 400 }
+      )
+    }
 
-      await writeFile(filePath, processedBuffer)
+    if (hasSuccessfulUploads && hasErrors) {
+      // Частичный успех
+      return NextResponse.json({
+        message: `Загружено ${uploadedFiles.length} из ${files.length} файлов`,
+        files: uploadedFiles,
+        errors: errors,
+        partial: true
+      }, { status: 207 }) // Multi-Status
+    }
 
-      const publicUrl = `/uploads/models/${fileName}`
-      uploadedFiles.push({
-        originalName: file.name,
-        fileName,
-        url: publicUrl,
-        size: processedBuffer.length,
-        originalSize: file.size,
-        type: `image/${outputExtension.slice(1)}`,
-        compressed: processedBuffer.length < originalBuffer.length
+    if (hasSuccessfulUploads && !hasErrors) {
+      // Полный успех
+      return NextResponse.json({
+        message: 'Все файлы успешно загружены',
+        files: uploadedFiles,
+        success: true
       })
     }
 
-    return NextResponse.json({
-      message: 'Файлы успешно загружены и обработаны',
-      files: uploadedFiles
-    })
-  } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    console.error('Error uploading files:', error)
+    // Неожиданный случай
     return NextResponse.json(
-      { error: 'Ошибка загрузки файлов' },
+      { error: 'Неожиданная ошибка обработки' },
+      { status: 500 }
+    )
+
+  } catch (error) {
+    console.error('Global error in upload route:', error)
+    
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json(
+        { error: "Недостаточно прав доступа" }, 
+        { status: 401 }
+      )
+    }
+    
+    return NextResponse.json(
+      { 
+        error: 'Внутренняя ошибка сервера',
+        message: 'Попробуйте позже или обратитесь к администратору'
+      },
       { status: 500 }
     )
   }

@@ -78,7 +78,7 @@ export default function TelegramAdminPage() {
   const fetchStatus = async () => {
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
       
       const response = await apiPost("/api/telegram/polling", { action: "status" }, {
         requireAuth: true,
@@ -87,6 +87,10 @@ export default function TelegramAdminPage() {
       
       clearTimeout(timeoutId)
       
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      
       const data = await response.json()
       const validatedData = TelegramStatusSchema.safeParse(data)
       
@@ -94,18 +98,28 @@ export default function TelegramAdminPage() {
         setStatus(validatedData.data)
       } else {
         console.error("Invalid status data:", validatedData.error)
+        setStatus({
+          subscribedChatId: null,
+          isPolling: false,
+          isActive: false,
+          hasToken: false
+        })
       }
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.error("Error fetching status:", error)
-      }
+      console.error("Error fetching status:", error)
+      setStatus({
+        subscribedChatId: null,
+        isPolling: false,
+        isActive: false,
+        hasToken: false
+      })
     }
   }
 
   const fetchSettings = async () => {
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
       
       const response = await apiGet("/api/admin/telegram-settings", {
         requireAuth: true,
@@ -114,6 +128,10 @@ export default function TelegramAdminPage() {
       
       clearTimeout(timeoutId)
       
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+      
       const data = await response.json()
       
       if (data.settings) {
@@ -121,25 +139,33 @@ export default function TelegramAdminPage() {
         if (data.settings.bot_token) {
           setTokenInput(data.settings.bot_token)
         }
+      } else {
+        setSettings(null)
       }
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.error("Error fetching settings:", error)
-        showMessage('error', 'Ошибка получения настроек')
-      }
+      console.error("Error fetching settings:", error)
+      setSettings(null)
     }
   }
 
   const fetchData = async () => {
     setLoadingState('fetchData', true)
-    await Promise.all([fetchSettings(), fetchStatus()])
-    setLoadingState('fetchData', false)
+    try {
+      await Promise.allSettled([fetchSettings(), fetchStatus()])
+    } catch (error) {
+      console.error("Error in fetchData:", error)
+    } finally {
+      setLoadingState('fetchData', false)
+    }
   }
 
   const refreshStatus = async () => {
     setLoadingState('refreshStatus', true)
-    await fetchStatus()
-    setLoadingState('refreshStatus', false)
+    try {
+      await fetchStatus()
+    } finally {
+      setLoadingState('refreshStatus', false)
+    }
   }
 
   const saveToken = async () => {
@@ -207,6 +233,15 @@ export default function TelegramAdminPage() {
 
   useEffect(() => {
     fetchData()
+    
+    const failsafeTimer = setTimeout(() => {
+      if (loading.fetchData) {
+        setLoadingState('fetchData', false)
+        showMessage('error', 'Превышено время ожидания загрузки')
+      }
+    }, 10000)
+    
+    return () => clearTimeout(failsafeTimer)
   }, [])
 
   useEffect(() => {
@@ -228,6 +263,16 @@ export default function TelegramAdminPage() {
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-lg font-medium">Загрузка настроек...</p>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setLoadingState('fetchData', false)
+                fetchData()
+              }}
+              className="mt-4"
+            >
+              Попробовать снова
+            </Button>
           </div>
         </div>
       </div>

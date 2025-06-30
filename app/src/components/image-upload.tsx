@@ -37,6 +37,7 @@ export default function ImageUpload({
   const [isDragOver, setIsDragOver] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -122,7 +123,6 @@ export default function ImageUpload({
         formData.append('files', file)
       })
 
-      // Симуляция прогресса (в реальности прогресс можно отслеживать через XMLHttpRequest)
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => prev.map(item => ({
           ...item,
@@ -134,7 +134,6 @@ export default function ImageUpload({
       
       clearInterval(progressInterval)
       
-      // Завершение прогресса
       setUploadProgress(prev => prev.map(item => ({
         ...item,
         progress: 100
@@ -145,14 +144,15 @@ export default function ImageUpload({
       
       setCurrentPhotos(prev => [...prev, ...newPhotoUrls])
 
-      // Успешное сообщение
       setTimeout(() => {
         setUploadProgress([])
+        setIsProcessing(false)
       }, 1000)
 
     } catch (error) {
       console.error('Upload error:', error)
       addError(error instanceof Error ? error.message : 'Ошибка загрузки файлов')
+      setIsProcessing(false)
     } finally {
       setIsUploading(false)
     }
@@ -164,6 +164,7 @@ export default function ImageUpload({
 
   const processFiles = useCallback(
     async (files: FileList | File[]) => {
+      setIsProcessing(true)
       const fileArray = Array.from(files)
       let compressedFiles = fileArray
       try {
@@ -174,11 +175,13 @@ export default function ImageUpload({
         )
       } catch (e) {
         addError(e instanceof Error ? e.message : 'Ошибка сжатия изображений')
+        setIsProcessing(false)
         return
       }
       for (const file of compressedFiles) {
         if (file.size > (maxSize !== Number.POSITIVE_INFINITY ? Math.min(maxSize, 0.95) : 0.95) * 1024 * 1024) {
           addError(`Файл "${file.name}" слишком большой даже после сжатия`)
+          setIsProcessing(false)
           return
         }
       }
@@ -248,26 +251,37 @@ export default function ImageUpload({
       )}
 
       {/* Upload Progress */}
-      {uploadProgress.length > 0 && (
+      {(isProcessing || uploadProgress.length > 0) && (
         <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/50">
           <CardContent className="p-4 space-y-3">
-            <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-              Загрузка файлов...
-            </p>
-            {uploadProgress.map((item, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between text-xs text-blue-700 dark:text-blue-300">
-                  <span className="truncate">{item.fileName}</span>
-                  <span>{Math.round(item.progress)}%</span>
-                </div>
-                <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
-                    style={{ width: `${item.progress}%` }}
-                  />
-                </div>
+            {isProcessing && uploadProgress.length === 0 ? (
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  Подготовка файлов к загрузке...
+                </p>
               </div>
-            ))}
+            ) : (
+              <>
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  Загрузка файлов...
+                </p>
+                {uploadProgress.map((item, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex justify-between text-xs text-blue-700 dark:text-blue-300">
+                      <span className="truncate">{item.fileName}</span>
+                      <span>{Math.round(item.progress)}%</span>
+                    </div>
+                    <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
+                        style={{ width: `${item.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
           </CardContent>
         </Card>
       )}
@@ -277,17 +291,17 @@ export default function ImageUpload({
         className={cn(
           "border-2 border-dashed transition-colors cursor-pointer",
           isDragOver ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-muted-foreground/50",
-          isUploading && "opacity-50 cursor-not-allowed",
+          (isUploading || isProcessing) && "opacity-50 cursor-not-allowed",
           remainingSlots === 0 && "opacity-40 cursor-not-allowed"
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={!isUploading && remainingSlots > 0 ? openFileDialog : undefined}
+        onClick={!isUploading && !isProcessing && remainingSlots > 0 ? openFileDialog : undefined}
       >
         <CardContent className="flex flex-col items-center justify-center p-8 text-center">
           <div className="mb-4">
-            {isUploading ? (
+            {(isUploading || isProcessing) ? (
               <Loader2 className="h-10 w-10 text-primary animate-spin" />
             ) : (
               <Upload className={cn(
@@ -298,8 +312,10 @@ export default function ImageUpload({
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">
-              {isUploading 
-                ? 'Загружаем файлы...' 
+              {(isUploading || isProcessing)
+                ? isProcessing && uploadProgress.length === 0 
+                  ? 'Обрабатываем файлы...'
+                  : 'Загружаем файлы...'
                 : remainingSlots === 0 
                   ? 'Достигнуто максимальное количество файлов'
                   : 'Перетащите изображения сюда или нажмите для выбора'
@@ -309,7 +325,7 @@ export default function ImageUpload({
               Поддерживает JPEG, PNG, WebP, GIF
             </p>
           </div>
-          {!isUploading && remainingSlots > 0 && (
+          {!isUploading && !isProcessing && remainingSlots > 0 && (
             <Button
               type="button"
               variant="outline"
@@ -335,7 +351,7 @@ export default function ImageUpload({
         accept={acceptedTypes.join(",")}
         onChange={handleFileSelect}
         className="hidden"
-        disabled={isUploading || remainingSlots === 0}
+        disabled={isUploading || isProcessing || remainingSlots === 0}
       />
 
       {/* Current Photos */}
@@ -351,7 +367,7 @@ export default function ImageUpload({
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPhotos([])}
-                disabled={isUploading}
+                disabled={isUploading || isProcessing}
                 className="text-xs"
               >
                 <Trash2 className="h-3 w-3 mr-1" />
@@ -378,7 +394,7 @@ export default function ImageUpload({
                         size="sm"
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => removePhoto(photoUrl)}
-                        disabled={isUploading}
+                        disabled={isUploading || isProcessing}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

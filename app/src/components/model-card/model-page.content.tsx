@@ -56,11 +56,13 @@ export function ModelPageContent({ model, settings }: ModelPageContentProps) {
                     >
                       {model.photos.map((src, index) => (
                         <SwiperSlide key={index}>
-                          <img
+                          <Image
                             src={src}
                             alt={`${model.name} - фото ${index + 1}`}
-                            className="object-contain transition-all duration-300 w-full h-full"
-                            sizes="(max-width: 1024px) 100vw, 50vw"
+                            fill
+                            className="object-contain transition-all duration-300"
+                            priority={index === 0}
+                            sizes="(max-width: 768px) 100vw, 50vw"
                           />
                         </SwiperSlide>
                       ))}
@@ -116,7 +118,7 @@ export function ModelPageContent({ model, settings }: ModelPageContentProps) {
                         alt={`${model.name} - миниатюра ${index + 1}`}
                         fill
                         className="object-cover"
-                        sizes="(max-width: 640px) 25vw, 16vw"
+                        sizes="(max-width: 640px) 25vw, (max-width: 768px) 20vw, 15vw"
                       />
                     </button>
                   ))}

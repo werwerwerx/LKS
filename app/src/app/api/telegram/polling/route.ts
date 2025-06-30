@@ -338,14 +338,25 @@ export const POST = async (req: NextRequest) => {
     }
 
     if (action === "status") {
-      const settings = await pollingManager.getTelegramSettings()
-      return NextResponse.json({ 
-        subscribedChatId: settings?.subscriber_chat_id,
-        isPolling: pollingManager.isActive(),
-        isActive: settings?.is_active || false,
-        hasToken: !!settings?.bot_token,
-        instanceId: INSTANCE_ID
-      })
+      try {
+        const settings = await pollingManager.getTelegramSettings()
+        return NextResponse.json({ 
+          subscribedChatId: settings?.subscriber_chat_id || null,
+          isPolling: pollingManager.isActive(),
+          isActive: settings?.is_active || false,
+          hasToken: !!settings?.bot_token,
+          instanceId: INSTANCE_ID
+        })
+      } catch (error) {
+        console.error("❌ Status check error:", error)
+        return NextResponse.json({ 
+          subscribedChatId: null,
+          isPolling: false,
+          isActive: false,
+          hasToken: false,
+          instanceId: INSTANCE_ID
+        })
+      }
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 })
