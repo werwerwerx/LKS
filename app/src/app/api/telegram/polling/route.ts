@@ -11,20 +11,26 @@ interface PollingState {
 }
 
 const POLLING_LOCK_KEY = 'telegram_polling_lock'
-const POLLING_TIMEOUT = 120000 // 120 секунд
+const POLLING_TIMEOUT = 30000 // 30 секунд
 const INSTANCE_ID = `polling_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
 class PollingManager {
   private abortController: AbortController | null = null
   private pollingPromise: Promise<void> | null = null
   
-  async getTelegramSettings() {
+  async getTelegramSettings(): Promise<any> {
     try {
-      const settings = await db.select().from(telegram_settings).limit(1)
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database timeout')), 5000)
+      })
+      
+      const dbPromise = db.select().from(telegram_settings).limit(1)
+      const settings = await Promise.race([dbPromise, timeoutPromise]) as any[]
+      
       return settings[0] || null
     } catch (error) {
       console.error("❌ Ошибка получения настроек Telegram:", error)
-      throw new Error("Не удалось получить настройки из базы данных")
+      return null
     }
   }
 
@@ -35,14 +41,19 @@ class PollingManager {
     try {
       const settings = await this.getTelegramSettings()
       if (settings) {
-        await db
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Database timeout')), 5000)
+        })
+        
+        const updatePromise = db
           .update(telegram_settings)
           .set({ ...updates, updated_at: new Date() })
           .where(eq(telegram_settings.id, settings.id))
+          
+        await Promise.race([updatePromise, timeoutPromise])
       }
     } catch (error) {
       console.error("❌ Ошибка обновления настроек Telegram:", error)
-      throw new Error("Не удалось обновить настройки в базе данных")
     }
   }
 
@@ -51,7 +62,7 @@ class PollingManager {
   }) {
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
       
       const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: "POST",
@@ -68,18 +79,14 @@ class PollingManager {
       clearTimeout(timeoutId)
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(`Telegram API error: ${response.status} - ${errorData.description || 'Unknown error'}`)
+        console.log(`❌ Telegram API error: ${response.status}`)
+        return null
       }
       
       return await response.json()
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.log('📤 Отправка сообщения прервана по таймауту')
-        return null
-      }
-      console.error("❌ Ошибка отправки сообщения:", error)
-      throw error
+      console.log('📤 Ошибка отправки сообщения (игнорируем)')
+      return null
     }
   }
 
@@ -271,7 +278,7 @@ export const GET = async (req: NextRequest) => {
     }
 
     if (!pollingManager.isActive()) {
-      await pollingManager.startPolling()
+      pollingManager.startPolling()
       return NextResponse.json({ 
         message: "Система уведомлений запущена", 
         subscribedChatId: settings.subscriber_chat_id,
@@ -315,18 +322,11 @@ export const POST = async (req: NextRequest) => {
       console.log("🔄 Restarting Telegram polling due to token change...")
       pollingManager.stopPolling()
       
-      while (pollingManager.isActive()) {
-        await new Promise(resolve => setTimeout(resolve, 100))
-      }
+      setTimeout(() => {
+        pollingManager.startPolling()
+      }, 1000)
       
-      try {
-        await pollingManager.startPolling()
-        console.log("✅ Telegram polling restarted successfully")
-        return NextResponse.json({ message: "Polling успешно перезапущен с новым токеном" })
-      } catch (error) {
-        console.error("❌ Failed to restart polling:", error)
-        return NextResponse.json({ error: "Ошибка перезапуска polling" }, { status: 500 })
-      }
+      return NextResponse.json({ message: "Polling перезапускается с новым токеном" })
     }
 
     if (action === "reset") {
