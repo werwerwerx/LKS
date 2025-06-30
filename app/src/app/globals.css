@@ -145,3 +145,48 @@ h1, h2, h3, h4, h5, h6, p {
     background: radial-gradient(circle at center, var(--tw-gradient-stops));
   }
 }
+
+/* Скрываем Next.js error overlay */
+nextjs-portal {
+  display: none !important;
+}
+
+/* Также скрываем react-dev-overlay */
+#__next-dev-overlay-error-boundary {
+  display: none !important;
+}
+
+/* Скрываем индикатор сборки */
+#__next-build-indicator {
+  display: none !important;
+}
+
+/* Скрываем Next.js Dev Tools badge с issues */
+[data-next-badge="true"] {
+  display: none !important;
+}
+
+/* Скрываем Next.js Dev Tools кнопку */
+[data-nextjs-dev-tools-button="true"] {
+  display: none !important;
+}
+
+/* Скрываем все dev индикаторы */
+[data-next-dev-overlay] {
+  display: none !important;
+}
+
+/* Скрываем HMR индикаторы */
+[data-turbopack-indicator] {
+  display: none !important;
+}
+
+/* Скрываем React refresh индикаторы */
+[data-refresh-indicator] {
+  display: none !important;
+}
+
+/* Скрываем любые dev уведомления */
+[data-next-dev-notification] {
+  display: none !important;
+}

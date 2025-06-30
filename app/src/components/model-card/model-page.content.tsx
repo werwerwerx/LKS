@@ -56,13 +56,11 @@ export function ModelPageContent({ model, settings }: ModelPageContentProps) {
                     >
                       {model.photos.map((src, index) => (
                         <SwiperSlide key={index}>
-                          <Image
+                          <img
                             src={src}
                             alt={`${model.name} - фото ${index + 1}`}
-                            fill
-                            className="object-contain transition-all duration-300"
+                            className="object-contain transition-all duration-300 w-full h-full"
                             sizes="(max-width: 1024px) 100vw, 50vw"
-                            priority={index === 0}
                           />
                         </SwiperSlide>
                       ))}

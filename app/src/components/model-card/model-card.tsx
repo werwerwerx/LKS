@@ -69,6 +69,7 @@ export function ModelCard({
     }
 
     const imageUrl = src.startsWith('http') ? src : src.startsWith('/') ? src : `/${src}`
+    const isUploadsImage = imageUrl.includes('/uploads/')
 
     return (
       <Image
@@ -80,9 +81,11 @@ export function ModelCard({
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         quality={75}
         loading={index === 0 ? "eager" : "lazy"}
+        unoptimized={isUploadsImage}
         onError={() => handleImageError(index)}
-        onLoadingComplete={(result) => {
-          if (result.naturalWidth === 0) {
+        onLoad={(e) => {
+          const img = e.currentTarget
+          if (img.naturalWidth === 0) {
             handleImageError(index)
           } else if (imageErrors.has(index)) {
             setImageErrors(prev => {

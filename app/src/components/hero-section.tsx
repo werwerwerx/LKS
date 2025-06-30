@@ -1,11 +1,30 @@
+'use client'
 import Image from "next/image"
 import { Crown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SiteSettings } from "@/lib/get-site-settings"
 import Link from "next/link"
+import { useState } from "react"
 
 interface HeroSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   settings: SiteSettings
+}
+
+function ErrorTestButton() {
+  const [shouldError, setShouldError] = useState(false)
+  
+  if (shouldError) {
+    throw new Error('Тестовая ошибка для проверки error boundary')
+  }
+  
+  return (
+    <button
+      onClick={() => setShouldError(true)}
+      className="ml-4 text-xs px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
+    >
+      Test Error
+    </button>
+  )
 }
 
 export default function HeroSection({ settings, className, ...props }: HeroSectionProps) {
@@ -28,12 +47,15 @@ export default function HeroSection({ settings, className, ...props }: HeroSecti
           Исполним любое желание.
         </p>
 
-        <Link
-          href="/models"
-          className="text-base lg:text-lg px-8 py-4 lg:px-10 lg:py-5 rounded-full font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300 bg-primary text-primary-foreground"
-        >
-          ВЫБРАТЬ МОДЕЛЬ
-        </Link>
+        <div className="flex items-center">
+          <Link
+            href="/models"
+            className="text-base lg:text-lg px-8 py-4 lg:px-10 lg:py-5 rounded-full font-semibold shadow-lg hover:shadow-xl transition-shadow duration-300 bg-primary text-primary-foreground"
+          >
+            ВЫБРАТЬ МОДЕЛЬ
+          </Link>
+          {/* <ErrorTestButton /> */}
+        </div>
 
         <p className="mt-12 text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed max-w-2xl font-normal">
           {settings.hero_description}
